@@ -123,6 +123,7 @@ def download(ctx, path, archive_format, catalog, delete, aip_id):
     # is finished, the previous polling URL will be used on next launch
     # if the exact same parameters are used.
     # This prevents the creation of new redundant DIP on the server-side.
+    # (KDKPAS-3482)
 
     dip_request = client.create_dip_request(
         aip_id=aip_id, archive_format=archive_format,
@@ -394,7 +395,7 @@ def get_transfer_info(ctx, transfer_id):
 
 
 # TODO: Provide "auto" file-type as choice option so that it'd make
-#       the selection based on given "path" output.
+#       the selection based on given "path" output. (KDKPAS-3482)
 @transfer.command(
     "get-report",
     help=(
