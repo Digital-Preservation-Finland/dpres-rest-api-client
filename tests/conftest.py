@@ -7,9 +7,9 @@ import pytest
 import requests_mock
 from click.testing import CliRunner
 
-from dpres_access_rest_api_client.cli import cli, Context
-from dpres_access_rest_api_client.v2.client import AccessClient as ClientV2
-from dpres_access_rest_api_client.v3.client import AccessClient as ClientV3
+from dpres_rest_api_client.cli import cli, Context
+from dpres_rest_api_client.v2.client import AccessClient as ClientV2
+from dpres_rest_api_client.v3.client import RestClient as ClientV3
 
 
 @pytest.fixture(scope="function")
@@ -29,7 +29,7 @@ def home_config_path(testpath, monkeypatch):
     home_dir = testpath / "home" / "testuser"
     monkeypatch.setenv("HOME", str(home_dir))
 
-    config_dir = home_dir / ".config" / "dpres_access_rest_api_client"
+    config_dir = home_dir / ".config" / "dpres_rest_api_client"
     config_dir.mkdir(parents=True)
     return config_dir / "config.conf"
 
@@ -54,7 +54,7 @@ def mock_config(
     config = ConfigParser()
     config.read(str(home_config_path))
 
-    monkeypatch.setattr("dpres_access_rest_api_client.base.CONFIG", config)
+    monkeypatch.setattr("dpres_rest_api_client.base.CONFIG", config)
 
     return config
 
@@ -95,7 +95,7 @@ def client_v2(mock_config):
 @pytest.fixture(scope="function")
 def client_v3(mock_config):
     """
-    AccessClient instance
+    RestClient instance
     """
 
     client = ClientV3(config=mock_config)

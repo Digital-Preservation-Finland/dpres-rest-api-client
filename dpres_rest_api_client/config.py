@@ -1,5 +1,5 @@
 """
-dpres-access-rest-api-client configuration handling
+dpres-rest-api-client configuration handling
 """
 import configparser
 import os
@@ -40,7 +40,7 @@ def _get_etc_config_path():
     """
     Get path to the system-wide configuration file
     """
-    return Path("/etc") / "dpres_access_rest_api_client" / "config.conf"
+    return Path("/etc") / "dpres_rest_api_client" / "config.conf"
 
 
 def _get_user_config_path():
@@ -48,7 +48,7 @@ def _get_user_config_path():
     Get path to the user configuration file
     """
     return Path(
-        click.get_app_dir("dpres_access_rest_api_client")
+        click.get_app_dir("dpres_rest_api_client")
     ) / "config.conf"
 
 
@@ -57,22 +57,22 @@ def get_config():
     Retrieve the configuration data as a dict. The following sources
     will be checked in order.
 
-    1. Path defined by environment variable ACCESS_REST_API_CLIENT_CONF
-    2. `/etc/dpres_access_rest_api_client/config.conf`
+    1. Path defined by environment variable DPRES_REST_API_CLIENT_CONF
+    2. `/etc/dpres_rest_api_client/config.conf`
     3. Local configuration directory as determined by `click.get_app_dir()`.
        This follows the XDG spec and usually corresponds
-       to `~/.config/dpres_access_rest_api_client/config.conf`
+       to `~/.config/dpres_rest_api_client/config.conf`
 
     If neither source exists, the default configuration file will be written
     to 2 and used instead.
     """
     def get_env_config_text():
         """
-        Get config content using path from ACCESS_REST_API_CLIENT_CONF
+        Get config content using path from DPRES_REST_API_CLIENT_CONF
         environment variable, if defined
         """
-        if os.environ.get("ACCESS_REST_API_CLIENT_CONF"):
-            return Path(os.environ["ACCESS_REST_API_CLIENT_CONF"]).read_text()
+        if os.environ.get("DPRES_REST_API_CLIENT_CONF"):
+            return Path(os.environ["DPRES_REST_API_CLIENT_CONF"]).read_text()
 
         return None
 

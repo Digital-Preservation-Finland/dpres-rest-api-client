@@ -8,7 +8,7 @@
 %define file_build_number M4_FILE_BUILD_NUMBER
 %define file_commit_ref M4_FILE_COMMIT_REF
 
-Name:           dpres-access-rest-api-client
+Name:           dpres-rest-api-client
 Version:        %{file_version}
 Release:        %{file_release_number}%{file_release_tag}.%{file_build_number}.git%{file_commit_ref}%{?dist}
 Summary:        Command-line utility anc library for the DPRES REST API
@@ -27,7 +27,7 @@ BuildRequires:  %{py3_dist wheel}
 BuildRequires:  %{py3_dist pytest}
 BuildRequires:  %{py3_dist requests-mock}
 
-%py_provides python3-dpres-access-rest-api-client
+%py_provides python3-dpres-rest-api-client
 
 %description
 Command-line utility and library for the DPRES REST API
@@ -41,12 +41,12 @@ export SETUPTOOLS_SCM_PRETEND_VERSION=%{file_version}
 
 %install
 %pyproject_install
-%pyproject_save_files dpres_access_rest_api_client
+%pyproject_save_files dpres_rest_api_client
 
 %files -f %{pyproject_files}
 %license LICENSE
 %doc README.rst CHANGELOG.md
-%{_bindir}/access-client
+%{_bindir}/muuta-tämä-client
 
 # TODO: For now changelog must be last, because it is generated automatically
 # from git log command. Appending should be fixed to happen only after %changelog macro

@@ -12,14 +12,14 @@ from tusclient.uploader import Uploader
 from ..base import BaseClient, SearchResult
 
 
-class AccessClient(BaseClient):
+class RestClient(BaseClient):
     """
-    Client for accessing the Digital Preservation Service REST API
+    Client for using the Digital Preservation Service REST API
     """
 
     def __init__(self, config=None):
         """
-        Create the AccessClient instance
+        Create the RestClient instance
         """
         super().__init__(api="3.0", config=config)
         # TUS endpoint is a bit special in DPS that contract ID is not provided
@@ -64,7 +64,7 @@ class AccessClient(BaseClient):
         file_path: str,
         chunk_size: Union[int, None] = None,
         store_url: bool = False,
-        cache_file: str = "dpres_access_rest_api_client_tus_storage",
+        cache_file: str = "dpres_rest_api_client_tus_storage",
     ) -> Uploader:
         """Create TUS Uploader object tailored for Digital Preservation
         Service.

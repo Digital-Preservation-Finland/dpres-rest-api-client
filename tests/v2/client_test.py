@@ -1,5 +1,5 @@
 """
-dpres_access_rest_api_client.v2.client tests
+dpres_rest_api_client.v2.client tests
 """
 
 import math
@@ -7,8 +7,8 @@ from datetime import datetime, timezone
 
 import pytest
 
-import dpres_access_rest_api_client.base
-import dpres_access_rest_api_client.v2.client
+import dpres_rest_api_client.base
+import dpres_rest_api_client.v2.client
 
 
 def test_dip_request(testpath, access_rest_api_host, client_v2, requests_mock):
@@ -115,7 +115,7 @@ def test_poll_interval_iter():
     range
     """
     poll_interval_iter = (
-        dpres_access_rest_api_client.base.get_poll_interval_iter()
+        dpres_rest_api_client.base.get_poll_interval_iter()
     )
 
     for _ in range(0, 5):
@@ -382,5 +382,5 @@ def test_ssl_verification(mock_config):
     # Remove 'verify_ssl' parameter from configuration file
     mock_config.remove_option("dpres", "verify_ssl")
 
-    client = dpres_access_rest_api_client.v2.client.AccessClient()
+    client = dpres_rest_api_client.v2.client.AccessClient()
     assert client.session.verify

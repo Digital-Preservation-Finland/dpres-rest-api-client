@@ -20,7 +20,7 @@ SearchResult = collections.namedtuple(
 
 class BaseClient:
     """
-    Client for accessing the Digital Preservation Service REST API
+    Client for using the Digital Preservation Service REST API
     """
 
     def __init__(self, api="2.0", config=None):
@@ -62,7 +62,7 @@ class BaseClient:
         """
         Create self.session based on the provided configuration
         """
-        from dpres_access_rest_api_client import __version__
+        from dpres_rest_api_client import __version__
 
         if not config:
             config = CONFIG
@@ -81,7 +81,7 @@ class BaseClient:
 
         if not session.verify:
             warnings.warn(
-                "SSL verification has been *DISABLED* for access-rest-api-"
+                "SSL verification has been *DISABLED* for dpres-rest-api-"
                 "client.",
                 InsecureRequestWarning,
             )
@@ -101,9 +101,9 @@ class BaseClient:
         session.request = functools.partial(session.request, timeout=10)
 
         session.headers["User-Agent"] = (
-            f"dpres-access-rest-api-client/{__version__} "
+            f"dpres-rest-api-client/{__version__} "
             f"(github.com/Digital-Preservation-Finland/"
-            f"access-rest-api-client)"
+            f"dpres-rest-api-client)"
         )
 
         retry = Retry(

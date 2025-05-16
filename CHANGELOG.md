@@ -3,6 +3,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.X] - YYYY-MM-DD
+### Changed
+ - Renamed the project to dpres-rest-api-client. The v3 api does more than just accessing.
+ - Renamed command line tool to muuta-tämä-client
+ - Removed RPM packaging for RHEL 7 and 8
+
 ## [0.8] - 2025-05-08
 ### Changed
  - Catch HTTP Error exception during client command transfer list
@@ -52,10 +58,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Added
  - First release of dpres-access-rest-api-client
 
-[0.7]: https://github.com/Digital-Preservation-Finland/access-rest-api-client/compare/v0.6...v0.7
-[0.6]: https://github.com/Digital-Preservation-Finland/access-rest-api-client/compare/v0.5...v0.6
-[0.5]: https://github.com/Digital-Preservation-Finland/access-rest-api-client/compare/v0.4...v0.5
-[0.4]: https://github.com/Digital-Preservation-Finland/access-rest-api-client/compare/v0.3...v0.4
-[0.3]: https://github.com/Digital-Preservation-Finland/access-rest-api-client/compare/v0.2...v0.3
-[0.2]: https://github.com/Digital-Preservation-Finland/access-rest-api-client/compare/v0.1...v0.2
-[Unreleased]: https://github.com/Digital-Preservation-Finland/access-rest-api-client/compare/v0.7...HEAD
+[0.8]: https://github.com/Digital-Preservation-Finland/dpres-rest-api-client/compare/v0.7...v0.8
+[0.7]: https://github.com/Digital-Preservation-Finland/dpres-rest-api-client/compare/v0.6...v0.7
+[0.6]: https://github.com/Digital-Preservation-Finland/dpres-rest-api-client/compare/v0.5...v0.6
+[0.5]: https://github.com/Digital-Preservation-Finland/dpres-rest-api-client/compare/v0.4...v0.5
+[0.4]: https://github.com/Digital-Preservation-Finland/dpres-rest-api-client/compare/v0.3...v0.4
+[0.3]: https://github.com/Digital-Preservation-Finland/dpres-rest-api-client/compare/v0.2...v0.3
+[0.2]: https://github.com/Digital-Preservation-Finland/dpres-rest-api-client/compare/v0.1...v0.2
+[Unreleased]: https://github.com/Digital-Preservation-Finland/dpres-rest-api-client/compare/v0.8...HEAD

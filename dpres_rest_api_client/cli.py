@@ -16,7 +16,7 @@ from requests.exceptions import HTTPError
 
 from .v2.client import AccessClient
 from .base import get_poll_interval_iter
-from .v3.client import AccessClient as ClientV3
+from .v3.client import RestClient as ClientV3
 
 from .config import write_default_config
 
@@ -40,7 +40,7 @@ def _spinner_animation():
 @click.pass_context
 def cli(ctx):
     """
-    DPRES Access REST API client
+    DPRES REST API client
     """
     ctx.obj.client_v2 = AccessClient()
     ctx.obj.client_v3 = ClientV3()
@@ -319,7 +319,7 @@ def upload(ctx, chunk_size, enable_resumable, file_path):
     if enable_resumable:
         try:
             cache_file_path = (
-                Path.home() / ".cache" / "dpres_access_rest_api_client"
+                Path.home() / ".cache" / "dpres_rest_api_client"
             )
             cache_file_path.mkdir(parents=True, exist_ok=True)
         except PermissionError as err:

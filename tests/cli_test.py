@@ -1,5 +1,5 @@
 """
-dpres_access_rest_api_client.cli tests
+dpres_rest_api_client.cli tests
 """
 
 import json
@@ -7,7 +7,7 @@ from urllib.parse import urlencode
 
 import pytest
 
-import dpres_access_rest_api_client.cli
+import dpres_rest_api_client.cli
 
 
 def test_help(cli_runner):
@@ -348,7 +348,7 @@ def test_transfers_get_report(
         commands.append(f"{report_path}")
     else:
         monkeypatch.setattr(
-            dpres_access_rest_api_client.cli.Path, "resolve", _mock_resolve)
+            dpres_rest_api_client.cli.Path, "resolve", _mock_resolve)
         report_path = tmp_path / f"{transfer_id}-report.xml"
 
     result = cli_runner(commands)
