@@ -11,7 +11,7 @@
 Name:           dpres-rest-api-client
 Version:        %{file_version}
 Release:        %{file_release_number}%{file_release_tag}.%{file_build_number}.git%{file_commit_ref}%{?dist}
-Summary:        Command-line utility anc library for the DPRES REST API
+Summary:        Command-line utility and library for the DPRES REST API
 License:        LGPLv3+
 URL:            https://www.digitalpreservation.fi
 Source0:        %{file_prefix}-v%{file_version}%{?file_release_tag}-%{file_build_number}-g%{file_commit_ref}.%{file_ext}
@@ -46,7 +46,7 @@ export SETUPTOOLS_SCM_PRETEND_VERSION=%{file_version}
 %files -f %{pyproject_files}
 %license LICENSE
 %doc README.rst CHANGELOG.md
-%{_bindir}/muuta-tämä-client
+%{_bindir}/dpres-client
 
 # TODO: For now changelog must be last, because it is generated automatically
 # from git log command. Appending should be fixed to happen only after %changelog macro

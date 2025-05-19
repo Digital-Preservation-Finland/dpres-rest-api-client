@@ -17,7 +17,7 @@ setup(
     ],
     entry_points={
         "console_scripts": [
-            "muuta-tämä-client = dpres_rest_api_client.cli:main"
+            "dpres-client = dpres_rest_api_client.cli:main"
         ]
     },
     python_requires=">=3.6",

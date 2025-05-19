@@ -33,7 +33,7 @@ file by running
 
 ::
 
-    $ muuta-tämä-client write-config
+    $ dpres-client write-config
 
 Edit the configuration file with necessary credentials.
 You can also save the configuration file at ``/etc/dpres_rest_api_client/config.conf``
@@ -45,44 +45,44 @@ To upload a package, run
 
 ::
 
-    $ muuta-tämä-client upload <FILE-PATH>
+    $ dpres-client upload <FILE-PATH>
 
 This command will provide a transfer id for the uploaded package, which is
 needed for the usage of the various transfer commands.
-See ``muuta-tämä-client upload --help`` for the usage of extra parameters.
+See ``dpres-client upload --help`` for the usage of extra parameters.
 
 To download the SIP validation report for a given transfer, run
 
 ::
 
-    $ muuta-tämä-client transfer get-report <TRANSFER-ID>
+    $ dpres-client transfer get-report <TRANSFER-ID>
 
 This command will poll the DPS ingest and download the SIP validation report
 when the ingest process is finished.
 
-See ``muuta-tämä-client transfer get-report --help`` for the usage of extra
+See ``dpres-client transfer get-report --help`` for the usage of extra
 parameters.
 
 To display information on a specific transfer, run
 
 ::
 
-    $ muuta-tämä-client transfer info <TRANSFER-ID>
+    $ dpres-client transfer info <TRANSFER-ID>
 
 To delete transfer information and its report, run
 
 ::
 
-    $ muuta-tämä-client transfer delete <TRANSFER-ID>
+    $ dpres-client transfer delete <TRANSFER-ID>
 
 To list recent transfers, run
 
 ::
 
-    $ muuta-tämä-client transfer list
+    $ dpres-client transfer list
 
 This command will also tell the transfer ids of the listed transfers.
-See ``muuta-tämä-client transfer list --help`` for the usage of extra parameters.
+See ``dpres-client transfer list --help`` for the usage of extra parameters.
 
 **Search and dissemination content from the DPS**
 
@@ -90,29 +90,29 @@ To search for packages to download, run
 
 ::
 
-    $ muuta-tämä-client search
+    $ dpres-client search
 
 An optional search query can be passed using the ``--query``. See the
 `API documentation <https://urn.fi/urn:nbn:fi-fe2020100578098>`_
 for details such as syntax and accepted field names.
 
-See ``muuta-tämä-client search --help`` for the usage of extra parameters.
+See ``dpres-client search --help`` for the usage of extra parameters.
 
 To download a package, copy the AIP ID from the previous command and then
 run
 
 ::
 
-    $ muuta-tämä-client dip download <AIP-ID>
+    $ dpres-client dip download <AIP-ID>
 
-See ``muuta-tämä-client dip download --help`` for the usage of extra parameters.
+See ``dpres-client dip download --help`` for the usage of extra parameters.
 
 To delete a DIP package, copy the DIP ID from the previous
-``muuta-tämä-client search --query pkg_type:DIP`` command and then run
+``dpres-client search --query pkg_type:DIP`` command and then run
 
 ::
 
-    $ muuta-tämä-client dip delete <DIP-ID>
+    $ dpres-client dip delete <DIP-ID>
 
 
 Installation using Python Virtualenv for development purposes

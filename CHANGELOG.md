@@ -3,11 +3,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## [0.X] - YYYY-MM-DD
+## [1.0.0] - YYYY-MM-DD
 ### Changed
  - Renamed the project to dpres-rest-api-client. The v3 api does more than just accessing.
- - Renamed command line tool to muuta-tämä-client
+ - Renamed command line tool to dpres-client
  - Removed RPM packaging for RHEL 7 and 8
+ - Moved the project to semantic versioning
 
 ## [0.8] - 2025-05-08
 ### Changed
