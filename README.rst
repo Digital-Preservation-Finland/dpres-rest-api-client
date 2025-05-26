@@ -49,6 +49,11 @@ To upload a package, run
 
 This command will provide a transfer id for the uploaded package, which is
 needed for the usage of the various transfer commands.
+
+You can provide ``--enable-resumable`` to enable the resumability feature
+of the upload, where you can continue uploading the same file again at
+later date.
+
 See ``dpres-client upload --help`` for the usage of extra parameters.
 
 To download the SIP validation report for a given transfer, run
