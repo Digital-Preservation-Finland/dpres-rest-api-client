@@ -73,8 +73,7 @@ class RestClient(BaseClient):
         :param chunk_size: Integer value on how big of a bytes each chunk
             should be when uploading. None for no limit.
         :param store_url: Boolean whether to cache the URLs for given file
-            to later try and resume. Defaulted to False due to current
-            buggy issue: https://github.com/tus/tus-py-client/issues/103.
+            to later try and resume. Defaulted to False.
         :param cache_file: Which file to use to cache TUS storage for
             resumable usage. This is only utilized when store_url is True.
         :return: TUS Uploader-instance.
