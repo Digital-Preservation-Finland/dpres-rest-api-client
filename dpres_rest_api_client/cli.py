@@ -470,7 +470,7 @@ def _poll_until_transfer_processed(client, transfer_id):
         # user doesn't get antsy
         click.echo(
             f'The SIP has the status "{current_status}". '
-            "Polling the DPS ingest for the SIP validation report..."
+            "Polling the DPS ingest for the SIP validation report... "
             f"{next(spinner_anim)}"
             # Carriage return so that the same line is overwritten
             f"\r",
@@ -486,6 +486,7 @@ def _poll_until_transfer_processed(client, transfer_id):
         poll_interval -= 0.25
         time.sleep(0.25)
 
+    click.echo("")
     click.echo("Polling is done. Transfer has been processed.")
     click.echo(f"Transfer has the status of '{current_status}'")
 
