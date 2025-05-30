@@ -339,6 +339,9 @@ def upload(ctx, chunk_size, enable_resumable, file_path):
     current_offset = uploader.offset
     with click.progressbar(length=upload_length,
                            label="Uploading to DPRES") as bar:
+        # in case we're resuming an old upload, update the bar to correct
+        # position
+        bar.update(current_offset)
         while uploader.offset < upload_length:
             uploader.upload_chunk()
             # progressbar updates in "steps" so we need to provide the
