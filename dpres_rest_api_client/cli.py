@@ -291,10 +291,10 @@ def search(ctx, page, limit, query, pager):
 @click.option(
     "--chunk-size",
     type=int,
-    default=8192,
+    default=104857600,  # 100 MiB
     help=(
-        "How big of a chunk size each part will be when uploading "
-        "to DPRES Service"
+        "In bytes, how big of a chunk size each part will be when uploading "
+        "to DPRES Service. Defaults to 100 MiB."
     ),
 )
 @click.option(

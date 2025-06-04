@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) 
 ### Changed
  - Add mention of --enable-resumable option in README.rst
  - Made the output of the get-report command clearer
+ - Increased the command line tool default upload chunk size to 100 MiB
 
 ## [1.0.0] - 2025-05-21
 ### Changed
