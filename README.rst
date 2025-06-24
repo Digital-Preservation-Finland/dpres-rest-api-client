@@ -21,7 +21,7 @@ See how to `configure the PAS-jakelu RPM repositories`_ to setup necessary softw
 
 After the repository has been added, the package can be installed by running the following command::
 
-    sudo dnf install python3-dpres-rest-api-client
+    sudo dnf install dpres-rest-api-client
 
 Usage
 -----
