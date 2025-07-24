@@ -3,7 +3,7 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [X.Y.Z] - yyyy-mm-dd
+## [1.0.1] - 2025-07-24
 ### Changed
  - Add mention of --enable-resumable option in README.rst
  - Made the output of the get-report command clearer
@@ -67,6 +67,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) 
 ### Added
  - First release of dpres-access-rest-api-client
 
+[1.0.1]: https://github.com/Digital-Preservation-Finland/dpres-rest-api-client/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/Digital-Preservation-Finland/dpres-rest-api-client/compare/v0.8...v1.0.0
 [0.8]: https://github.com/Digital-Preservation-Finland/dpres-rest-api-client/compare/v0.7...v0.8
 [0.7]: https://github.com/Digital-Preservation-Finland/dpres-rest-api-client/compare/v0.6...v0.7
@@ -75,4 +76,4 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) 
 [0.4]: https://github.com/Digital-Preservation-Finland/dpres-rest-api-client/compare/v0.3...v0.4
 [0.3]: https://github.com/Digital-Preservation-Finland/dpres-rest-api-client/compare/v0.2...v0.3
 [0.2]: https://github.com/Digital-Preservation-Finland/dpres-rest-api-client/compare/v0.1...v0.2
-[Unreleased]: https://github.com/Digital-Preservation-Finland/dpres-rest-api-client/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/Digital-Preservation-Finland/dpres-rest-api-client/compare/v1.0.1...HEAD
