@@ -2,13 +2,13 @@
 dpres-rest-api-client default imports
 """
 
-from pkg_resources import DistributionNotFound, get_distribution
+from importlib.metadata import PackageNotFoundError, version
 
 # flake8: noqa
 from .v2.client import AccessClient, DIPRequest
 
 try:
     # pylint: disable=no-member
-    __version__ = get_distribution("dpres_rest_api_client").version
-except DistributionNotFound:
+    __version__ = version("dpres_rest_api_client")
+except PackageNotFoundError:
     __version__ = "unknown"
