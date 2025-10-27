@@ -4,6 +4,7 @@ dpres-rest-api-client configuration handling
 import configparser
 import os
 import warnings
+from collections import UserDict
 from pathlib import Path
 
 import click
@@ -136,4 +137,23 @@ def write_default_config():
     return user_config_path
 
 
-CONFIG = get_config()
+class LazyConfig(UserDict):
+    """
+    Config object that defers reading the configuration file until the user
+    actually accesses one of the fields
+    """
+    def __init__(self):
+        self._data = None
+
+    @property
+    def data(self) -> dict:
+        """
+        Lazy-load the underlying dictionary on first access
+        """
+        if not self._data:
+            self._data = get_config()
+
+        return self._data
+
+
+CONFIG = LazyConfig()
