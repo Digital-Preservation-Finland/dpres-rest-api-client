@@ -4,12 +4,14 @@ import collections
 import functools
 import random
 import warnings
+
+import requests
+from requests.adapters import HTTPAdapter
 from urllib3 import disable_warnings
 from urllib3.exceptions import InsecureRequestWarning
 from urllib3.util.retry import Retry
 
-import requests
-from requests.adapters import HTTPAdapter
+from dpres_rest_api_client.version import __version__
 
 from .config import CONFIG
 
@@ -62,7 +64,6 @@ class BaseClient:
         """
         Create self.session based on the provided configuration
         """
-        from dpres_rest_api_client import __version__
 
         if not config:
             config = CONFIG
