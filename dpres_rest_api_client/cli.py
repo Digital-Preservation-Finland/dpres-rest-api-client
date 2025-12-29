@@ -184,7 +184,7 @@ def _download_save_to_path(dip_request, path):
     """
     # Download the DIP
     download_size = dip_request.download_size
-    human_size = humanize.naturalsize(download_size)
+    human_size = humanize.naturalsize(download_size, binary=True)
 
     with click.progressbar(
         label=f"Downloading ({human_size})...",
@@ -594,6 +594,35 @@ def list_transfers(ctx, status, page, limit, pager):
         ]
     )
     echo_func(output)
+
+
+@cli.command("statistics", help="Get statistics")
+@click.pass_context
+def statistics(ctx):
+    """Get list of transfers and display their information."""
+    results = ctx.obj.client_v3.get_statistics()
+
+    # convert bytes to human readable units
+    capacity_used = humanize.naturalsize(
+        results["capacity"]["used"],
+        binary=True
+    )
+    capacity_available = humanize.naturalsize(
+        results["capacity"]["available"],
+        binary=True
+    )
+    total_capacity = humanize.naturalsize(
+        results["capacity"]["total"],
+        binary=True
+    )
+
+    click.echo(
+        f"Capacity used: {capacity_used}\n"
+        f"Capacity available: {capacity_available}\n"
+        f"Total capacity: {total_capacity}\n"
+        f"Accepted sips: {results['key_figures']['sips_accepted']}\n"
+        f"Preserved objects: {results['key_figures']['objects_preserved']}"
+    )
 
 
 def _extract_http_error_message(err: HTTPError) -> str:

@@ -104,3 +104,40 @@ def test_list_transfers(
         assert search_result.next_url
     else:
         assert not search_result.next_url
+
+
+def test_get_statistics(client_v3, requests_mock):
+    """Test fetching statistics.
+
+    :param client_v3: RestClient instance
+    :param requests_mock: HTTP request mocker.
+    """
+    requests_mock.get(
+        f"/api/3.0/{client_v3.contract_id}/statistics/overview",
+        json={
+            "status": "success",
+            "data": {
+                "capacity": {
+                    "used": 1,
+                    "available": 2,
+                    "total": 3,
+                },
+                "key_figures": {
+                    "sips_accepted": 4,
+                    "objects_preserved": 5,
+                }
+            },
+        },
+    )
+
+    assert client_v3.get_statistics() == {
+        "capacity": {
+            "used": 1,
+            "available": 2,
+            "total": 3,
+        },
+        "key_figures": {
+            "sips_accepted": 4,
+            "objects_preserved": 5,
+        }
+    }

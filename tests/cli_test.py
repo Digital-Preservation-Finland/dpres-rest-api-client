@@ -419,3 +419,41 @@ def test_transfers_list_errors(
     result = cli_runner(commands)
     assert result.exit_code == 1
     assert "Error:" in result.output
+
+
+def test_statistics(
+    cli_runner, access_rest_api_host, contract_id, requests_mock
+):
+    """Test fetching statistics.
+
+    :param cli_runner: Function that runs dpres-client command
+    :param access_rest_api_host: Access REST API host
+    :param contract_id: Contract identifier
+    """
+    requests_mock.get(
+        f"{access_rest_api_host}/api/3.0/{contract_id}/statistics/overview",
+        json={
+            "status": "success",
+            "data": {
+                "capacity": {
+                    "used": 1,
+                    "available": 2097152,  # 2 MiB
+                    "total": 3000000,  # 3 MB ≈ 2.9 MiB
+                },
+                "key_figures": {
+                    "sips_accepted": 4,
+                    "objects_preserved": 5,
+                }
+            }
+        }
+    )
+
+    result = cli_runner(["statistics"])
+    assert result.output == (
+        "Capacity used: 1 Byte\n"
+        "Capacity available: 2.0 MiB\n"
+        "Total capacity: 2.9 MiB\n"
+        "Accepted sips: 4\n"
+        "Preserved objects: 5\n"
+    )
+    assert result.exit_code == 0
