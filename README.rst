@@ -26,6 +26,8 @@ After the repository has been added, the package can be installed by running the
 Usage
 -----
 
+For full list of commands, see ``dpres-client --help``.
+
 **Write configuration file**
 
 After you have installed the application, you can create the configuration
