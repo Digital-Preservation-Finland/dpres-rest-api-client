@@ -1,5 +1,5 @@
 """
-dpres_rest_api_client.cli tests
+dpres_rest_api_client.cli tests.
 """
 
 import json
@@ -12,7 +12,7 @@ import dpres_rest_api_client.cli
 
 def test_help(cli_runner):
     """
-    Test that `--help` prints the help output
+    Test that `--help` prints the help output.
     """
     result = cli_runner(["--help"])
 
@@ -24,7 +24,7 @@ def test_help(cli_runner):
 
 def test_write_config(cli_runner, home_config_path):
     """
-    Test that `write-config` creates the configuration file
+    Test that `write-config` creates the configuration file.
     """
     # Remove the existing file and ensure it is regenerated
     home_config_path.unlink()
@@ -45,7 +45,7 @@ def test_write_config(cli_runner, home_config_path):
 
 def test_search(cli_runner, access_rest_api_host, requests_mock):
     """
-    Test that a search can be performed
+    Test that a search can be performed.
     """
     qs_encoded = urlencode(
         {
@@ -108,7 +108,7 @@ def test_search(cli_runner, access_rest_api_host, requests_mock):
 
 def test_search_query(cli_runner, access_rest_api_host, requests_mock):
     """
-    Test performing a search with a custom query
+    Test performing a search with a custom query.
     """
     qs_encoded = urlencode({"page": 1, "limit": 1000, "q": "mets_OBJID:eggs"})
 
@@ -144,7 +144,7 @@ def test_search_query(cli_runner, access_rest_api_host, requests_mock):
 
 def test_download(cli_runner, access_rest_api_host, requests_mock, testpath):
     """
-    Test downloading a DIP using the `download` command
+    Test downloading a DIP using the `download` command.
     """
     requests_mock.post(
         f"{access_rest_api_host}/api/2.0/urn:uuid:fake_contract_id/"
@@ -270,7 +270,6 @@ def test_upload_file(
     cli_runner, transfer_id, uploadable_file_fx, enable_resumable
 ):
     """Test that the click-application can upload file."""
-
     commands = ["upload", "--chunk-size", "3", f"{uploadable_file_fx}"]
     if enable_resumable:
         commands.append("--enable-resumable")
@@ -281,8 +280,7 @@ def test_upload_file(
 
 @pytest.mark.usefixtures("mock_tus_endpoints")
 def test_upload_empty_file(cli_runner, empty_file_fx):
-    """Test that the click-application can handle an empty file"""
-
+    """Test that the click-application can handle an empty file."""
     commands = ["upload", f"{empty_file_fx}"]
     result = cli_runner(commands)
     assert result.exit_code == 1
@@ -292,7 +290,6 @@ def test_upload_empty_file(cli_runner, empty_file_fx):
 @pytest.mark.usefixtures("mock_tus_endpoints")
 def test_upload_wrong_file_ending(cli_runner, wrong_file_ending_fx):
     """Test that the click-application can handle a file with invalid suffix"""
-
     commands = ["upload", f"{wrong_file_ending_fx}"]
     result = cli_runner(commands)
     assert result.exit_code == 1
@@ -311,7 +308,6 @@ def test_upload_wrong_file_ending(cli_runner, wrong_file_ending_fx):
 )
 def test_transfers_info(cli_runner, transfer_id, transfer_exists):
     """Test that the click-application can get transfer info."""
-
     commands = ["transfer", "info", f"{transfer_id}"]
     result = cli_runner(commands)
     if transfer_exists:
@@ -338,7 +334,7 @@ def test_transfers_get_report(
     """Test that the click-application can get transfer report."""
 
     def _mock_resolve(_):
-        """Make Path(".").resolve() return tmp_path"""
+        """Make Path(".").resolve() return tmp_path."""
         return tmp_path
 
     commands = ["transfer", "get-report", f"{transfer_id}"]
@@ -374,7 +370,6 @@ def test_transfers_get_report(
 )
 def test_transfers_delete(cli_runner, transfer_id, transfer_exists):
     """Test that the click-application can get transfer info."""
-
     commands = ["transfer", "delete", f"{transfer_id}"]
     result = cli_runner(commands)
     if transfer_exists:

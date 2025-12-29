@@ -4,22 +4,24 @@ Client module to utilize National Digital Preservation Services REST API 3.0.
 
 import os
 from typing import Union
+
 from requests.auth import HTTPBasicAuth
 from requests.exceptions import HTTPError
 from tusclient import client
 from tusclient.storage import filestorage
 from tusclient.uploader import Uploader
-from ..base import BaseClient, SearchResult
+
+from dpres_rest_api_client.base import BaseClient, SearchResult
 
 
 class RestClient(BaseClient):
     """
-    Client for using the Digital Preservation Service REST API
+    Client for using the Digital Preservation Service REST API.
     """
 
     def __init__(self, config=None):
         """
-        Create the RestClient instance
+        Create the RestClient instance.
         """
         super().__init__(api="3.0", config=config)
         # TUS endpoint is a bit special in DPS that contract ID is not provided
@@ -104,7 +106,6 @@ class RestClient(BaseClient):
         :return: JSON data from successful response.
         :raises HTTPError: When response code is within 400 - 500 range.
         """
-
         url = f"{self.base_url}/transfers/{transfer_id}"
         response = self.session.get(url)
         return response.json()["data"]
@@ -118,16 +119,16 @@ class RestClient(BaseClient):
         :return: Content data in bytes from successful response.
         :raises HTTPError: When response code is within 400 - 500 range.
         """
-
         url = f"{self.base_url}/transfers/{transfer_id}/report"
         params = {"type": report_type}
         response = self.session.get(url, params=params)
         return response.content
 
     def delete_transfer(self, transfer_id):
-        """Delete the given transfer information. This will make it so
-        that future call to get transfer information or report is no
-        longer possible.
+        """Delete the given transfer information.
+
+        This will make it so that future call to get transfer
+        information or report is no longer possible.
 
         :param transfer_id: Transfer ID to delete.
         :return: True on success, otherwise False.
@@ -140,7 +141,8 @@ class RestClient(BaseClient):
             return False
 
     def list_transfers(self, status=None, page=1, limit=20):
-        """Get list of recent transfers from Digital Preservation Service.
+        """
+        Get list of recent transfers from Digital Preservation Service.
 
         :param status: Filter the result down to given status in string.
         :param page: Which page number to view in integer.
@@ -148,7 +150,6 @@ class RestClient(BaseClient):
         :return: JSON data from successful response.
         :raises HTTPError: When response code is within 400 - 500 range.
         """
-
         url = f"{self.base_url}/transfers"
         params = {"page": page, "limit": limit}
         if status:

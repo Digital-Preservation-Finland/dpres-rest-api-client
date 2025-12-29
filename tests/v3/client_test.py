@@ -1,4 +1,4 @@
-"""Module that tests dpres_rest_api_client.v3.client"""
+"""Module that tests dpres_rest_api_client.v3.client."""
 
 import pytest
 from requests.exceptions import HTTPError
