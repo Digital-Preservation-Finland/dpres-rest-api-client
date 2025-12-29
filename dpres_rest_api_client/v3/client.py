@@ -1,17 +1,20 @@
 """
 Client module to utilize National Digital Preservation Services REST API 3.0.
 """
+from __future__ import annotations
 
 import os
-from typing import Union
+from typing import TYPE_CHECKING, Any
 
 from requests.auth import HTTPBasicAuth
 from requests.exceptions import HTTPError
 from tusclient import client
 from tusclient.storage import filestorage
-from tusclient.uploader import Uploader
 
 from dpres_rest_api_client.base import BaseClient, SearchResult
+
+if TYPE_CHECKING:
+    from tusclient.uploader import Uploader
 
 
 class RestClient(BaseClient):
@@ -64,7 +67,7 @@ class RestClient(BaseClient):
     def create_uploader(
         self,
         file_path: str,
-        chunk_size: Union[int, None] = None,
+        chunk_size: int | None = None,
         store_url: bool = False,
         cache_file: str = "dpres_rest_api_client_tus_storage",
     ) -> Uploader:
@@ -80,7 +83,7 @@ class RestClient(BaseClient):
             resumable usage. This is only utilized when store_url is True.
         :return: TUS Uploader-instance.
         """
-        kwargs = {
+        kwargs: dict[str, Any] = {
             "metadata": {
                 "contract_id": self.contract_id,
                 "filename": os.path.basename(file_path),
