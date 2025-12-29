@@ -1,8 +1,7 @@
 """Define the version of DPRES REST API Client."""
 
-from importlib.metadata import PackageNotFoundError, version
-
 try:
-    __version__ = version("dpres_rest_api_client")
-except PackageNotFoundError:
+    from dpres_rest_api_client._version import version as __version__
+except ImportError:
+    # Package not installed
     __version__ = "unknown"
