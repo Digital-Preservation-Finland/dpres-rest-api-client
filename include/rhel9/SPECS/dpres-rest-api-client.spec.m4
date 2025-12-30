@@ -45,7 +45,7 @@ export SETUPTOOLS_SCM_PRETEND_VERSION=%{file_version}
 
 %files -f %{pyproject_files}
 %license LICENSE
-%doc README.rst CHANGELOG.md
+%doc README.rst CHANGELOG.rst
 %{_bindir}/dpres-client
 
 # TODO: For now changelog must be last, because it is generated automatically
