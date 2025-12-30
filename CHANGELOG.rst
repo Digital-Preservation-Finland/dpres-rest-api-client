@@ -9,6 +9,10 @@ and this project adheres to `Semantic Versioning <https://semver.org/spec/v2.0.0
 Unreleased
 ----------
 
+Added
+~~~~~
+- Support for retrieving statistics via the `/api/v2/statistics` API endpoint (available via CLI and Python API).
+
 Fixed
 ~~~~~
 - Fix spurious "configuration file not found" warning when configuration values were provided programmatically
