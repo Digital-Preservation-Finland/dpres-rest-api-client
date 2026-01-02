@@ -180,6 +180,16 @@ class AccessClient(BaseClient):
         latest = max(report_entries, key=lambda entry: entry["date"])
         return self.get_ingest_report(sip_id, latest["transfer_id"], file_type)
 
+    def get_statistics(self):
+        """Get statistics from Digital Preservation Service.
+
+        :return: JSON data from successful response.
+        :raises HTTPError: When response code is within 400 - 500 range.
+        """
+        url = f"{self.base_url}/statistics/overview"
+        response = self.session.get(url)
+        return response.json()["data"]
+
 
 class DIPRequest:
     """

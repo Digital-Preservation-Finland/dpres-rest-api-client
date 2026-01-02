@@ -173,13 +173,3 @@ class RestClient(BaseClient):
         return SearchResult(
             results=data["results"], prev_url=prev_url, next_url=next_url
         )
-
-    def get_statistics(self):
-        """Get statistics from Digital Preservation Service.
-
-        :return: JSON data from successful response.
-        :raises HTTPError: When response code is within 400 - 500 range.
-        """
-        url = f"{self.base_url}/statistics/overview"
-        response = self.session.get(url)
-        return response.json()["data"]

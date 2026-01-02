@@ -600,7 +600,7 @@ def list_transfers(ctx, status, page, limit, pager):
 @click.pass_context
 def statistics(ctx):
     """Get list of transfers and display their information."""
-    results = ctx.obj.client_v3.get_statistics()
+    results = ctx.obj.client_v2.get_statistics()
 
     # convert bytes to human readable units
     capacity_used = humanize.naturalsize(

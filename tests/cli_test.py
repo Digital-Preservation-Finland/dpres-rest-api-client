@@ -431,7 +431,7 @@ def test_statistics(
     :param contract_id: Contract identifier
     """
     requests_mock.get(
-        f"{access_rest_api_host}/api/3.0/{contract_id}/statistics/overview",
+        f"{access_rest_api_host}/api/2.0/{contract_id}/statistics/overview",
         json={
             "status": "success",
             "data": {

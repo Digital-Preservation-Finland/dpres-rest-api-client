@@ -384,3 +384,40 @@ def test_ssl_verification(mock_config):
 
     client = dpres_rest_api_client.v2.client.AccessClient()
     assert client.session.verify
+
+
+def test_get_statistics(client_v2, requests_mock):
+    """Test fetching statistics.
+
+    :param client_v2: AccessClient instance
+    :param requests_mock: HTTP request mocker.
+    """
+    requests_mock.get(
+        f"/api/2.0/{client_v2.contract_id}/statistics/overview",
+        json={
+            "status": "success",
+            "data": {
+                "capacity": {
+                    "used": 1,
+                    "available": 2,
+                    "total": 3,
+                },
+                "key_figures": {
+                    "sips_accepted": 4,
+                    "objects_preserved": 5,
+                }
+            },
+        },
+    )
+
+    assert client_v2.get_statistics() == {
+        "capacity": {
+            "used": 1,
+            "available": 2,
+            "total": 3,
+        },
+        "key_figures": {
+            "sips_accepted": 4,
+            "objects_preserved": 5,
+        }
+    }
