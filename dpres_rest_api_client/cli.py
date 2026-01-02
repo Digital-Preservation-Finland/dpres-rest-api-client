@@ -604,15 +604,15 @@ def statistics(ctx):
 
     # convert bytes to human readable units
     capacity_used = humanize.naturalsize(
-        results["capacity"]["used"],
+        results["capacity_used"],
         binary=True
     )
     capacity_available = humanize.naturalsize(
-        results["capacity"]["available"],
+        results["capacity_available"],
         binary=True
     )
     total_capacity = humanize.naturalsize(
-        results["capacity"]["total"],
+        results["capacity_total"],
         binary=True
     )
 
@@ -620,8 +620,8 @@ def statistics(ctx):
         f"Capacity used: {capacity_used}\n"
         f"Capacity available: {capacity_available}\n"
         f"Total capacity: {total_capacity}\n"
-        f"Accepted sips: {results['key_figures']['sips_accepted']}\n"
-        f"Preserved objects: {results['key_figures']['objects_preserved']}"
+        f"Accepted sips: {results['sips_accepted']}\n"
+        f"Preserved objects: {results['objects_preserved']}"
     )
 
 

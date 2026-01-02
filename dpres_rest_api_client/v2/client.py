@@ -8,10 +8,26 @@ import functools
 import time
 from urllib.parse import quote
 from pathlib import Path
+from typing import TypedDict
 
 import requests
 
 from ..base import BaseClient, SearchResult, get_poll_interval_iter
+
+
+class Statistics(TypedDict):
+    """Represents statistical information retrieved from DPS."""
+
+    #: The used quota of the contract in bytes
+    capacity_used: int
+    #: The available quota in bytes
+    capacity_available: int
+    #: The total quota of the contract in bytes
+    capacity_total: int
+    #: The total number of accepted SIPs
+    sips_accepted: int
+    #: The total number of digital objects in preservation
+    objects_preserved: int
 
 
 class AccessClient(BaseClient):
@@ -180,15 +196,21 @@ class AccessClient(BaseClient):
         latest = max(report_entries, key=lambda entry: entry["date"])
         return self.get_ingest_report(sip_id, latest["transfer_id"], file_type)
 
-    def get_statistics(self):
+    def get_statistics(self) -> Statistics:
         """Get statistics from Digital Preservation Service.
 
-        :return: JSON data from successful response.
         :raises HTTPError: When response code is within 400 - 500 range.
         """
         url = f"{self.base_url}/statistics/overview"
         response = self.session.get(url)
-        return response.json()["data"]
+        data = response.json()["data"]
+        return {
+            "capacity_used": data["capacity"]["used"],
+            "capacity_available": data["capacity"]["available"],
+            "capacity_total": data["capacity"]["total"],
+            "sips_accepted": data["key_figures"]["sips_accepted"],
+            "objects_preserved": data["key_figures"]["objects_preserved"],
+        }
 
 
 class DIPRequest:

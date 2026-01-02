@@ -390,7 +390,7 @@ def test_get_statistics(client_v2, requests_mock):
     """Test fetching statistics.
 
     :param client_v2: AccessClient instance
-    :param requests_mock: HTTP request mocker.
+    :param requests_mock: HTTP request mocker
     """
     requests_mock.get(
         f"/api/2.0/{client_v2.contract_id}/statistics/overview",
@@ -411,13 +411,9 @@ def test_get_statistics(client_v2, requests_mock):
     )
 
     assert client_v2.get_statistics() == {
-        "capacity": {
-            "used": 1,
-            "available": 2,
-            "total": 3,
-        },
-        "key_figures": {
-            "sips_accepted": 4,
-            "objects_preserved": 5,
-        }
+        "capacity_used": 1,
+        "capacity_available": 2,
+        "capacity_total": 3,
+        "sips_accepted": 4,
+        "objects_preserved": 5,
     }
