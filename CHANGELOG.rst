@@ -6,8 +6,8 @@ All notable changes to this project will be documented in this file.
 The format is based on `Keep a Changelog <https://keepachangelog.com/en/1.1.0/>`__,
 and this project adheres to `Semantic Versioning <https://semver.org/spec/v2.0.0.html>`__.
 
-Unreleased
-----------
+`1.1.0`_ - 2026-01-28
+---------------------
 
 Added
 ~~~~~
@@ -122,6 +122,7 @@ Added
 - First release of dpres-access-rest-api-client
 
 
+.. _1.1.0: https://github.com/Digital-Preservation-Finland/dpres-rest-api-client/compare/v1.0.1...v1.1.0
 .. _1.0.1: https://github.com/Digital-Preservation-Finland/dpres-rest-api-client/compare/v1.0.0...v1.0.1
 .. _1.0.0: https://github.com/Digital-Preservation-Finland/dpres-rest-api-client/compare/v0.8...v1.0.0
 .. _0.8: https://github.com/Digital-Preservation-Finland/dpres-rest-api-client/compare/v0.7...v0.8
@@ -131,4 +132,4 @@ Added
 .. _0.4: https://github.com/Digital-Preservation-Finland/dpres-rest-api-client/compare/v0.3...v0.4
 .. _0.3: https://github.com/Digital-Preservation-Finland/dpres-rest-api-client/compare/v0.2...v0.3
 .. _0.2: https://github.com/Digital-Preservation-Finland/dpres-rest-api-client/compare/v0.1...v0.2
-.. _Unreleased: https://github.com/Digital-Preservation-Finland/dpres-rest-api-client/compare/v1.0.1...HEAD
+.. _Unreleased: https://github.com/Digital-Preservation-Finland/dpres-rest-api-client/compare/v1.1.0...HEAD
