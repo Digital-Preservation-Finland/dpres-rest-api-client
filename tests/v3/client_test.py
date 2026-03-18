@@ -118,6 +118,56 @@ def test_list_transfers(client_v3, status):
             entry["status"] == status for entry in search_result.results
         )
 
+@pytest.mark.parametrize(
+    "qs",
+    [None, {"complete": False, "page": "page-param", "limit": "limit-param"}],
+)
+def test_list_dips(requests_mock, client_v3, qs, access_rest_api_host, contract_id):
+    """
+    Test ``list_dips`` function.
+    Using a mock call to access_rest_api, check that the query string is passed correctly
+    and the response from ``list_dips`` is correct.
+    """
+
+    complete_status = True if qs is None else qs["complete"]
+    url = f"{access_rest_api_host}/api/3.0/{contract_id}/disseminated"
+    results = [
+        {
+            "dip_id": f"dip_id_{i}",
+            "complete": complete_status,
+            "disseminated": url,
+            "actions": ({"download": f"{url}/download"} if complete_status else {}),
+            "timestamp": "2024-11-15T10_10_00Z",
+        }
+        for i in range(5)
+    ]
+    access_rest_api_mock = requests_mock.get(
+        url,
+        json={
+            "data": {
+                "links": {"previous": "prev_value", "next": "next_value"},
+                "results": results,
+            }
+        },
+    )
+
+    search_result = client_v3.list_dips() if qs is None else client_v3.list_dips(**qs)
+
+    # Client does not change the format of the results
+    assert search_result.results == results
+
+    query_string = access_rest_api_mock.last_request.qs
+    if qs is None:
+        # Default parameters are passed correctly
+        assert "complete" not in query_string
+        assert query_string["page"][0] == str(1)
+        assert query_string["limit"][0] == str(20)
+    else:
+        # Given parameters are passed correctly
+        assert query_string["complete"][0] == str(qs["complete"]).lower()
+        assert query_string["page"][0] == qs["page"]
+        assert query_string["limit"][0] == qs["limit"]
+
 
 def _create_search_result(results, next=None, previous=None):
     return {

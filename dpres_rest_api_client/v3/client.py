@@ -69,6 +69,17 @@ class TransferResult(TypedDict):
     timestamp: str
 
 
+class DIPResult(TypedDict):
+    """
+    Individual result returned by /v3/<contract>/disseminated
+    """
+    dip_id: str
+    complete: bool
+    disseminated: str
+    actions: dict
+    timestamp: str
+
+
 class RestClient(BaseClient):
     """
     Client for using the Digital Preservation Service REST API.
@@ -240,3 +251,35 @@ class RestClient(BaseClient):
         data = response.json()["data"]
 
         return SearchResultV3.from_data(data=data, page=page, limit=limit)
+
+    def list_dips(
+        self,
+        complete: bool | None = None,
+        page: int = 1,
+        limit: int = 20
+    ) -> SearchResultV3[DIPResult]:
+        """
+        List of completed DIPs in Digital Preservation Service.
+        Incompleted DIPs are listed using completed=False parameter.
+
+        :param bool complete: Default True value lists all completed DIPs, for
+        listing incomplete DIPs use False.
+        :param int page: Which response page to view as an integer.
+        :param int limit: Maximum number of DIPs as an integer.
+        :return: JSON data from succesfull response.
+        :raises HTTPError: When response code is wihin 400 - 500 range.
+        """
+        url = f"{self.base_url}/disseminated"
+        params = {"page": page, "limit": limit}
+        if complete is not None:
+            params['complete'] = complete
+
+        response = self.session.get(url, params=params)
+        data = response.json()["data"]
+
+        return SearchResultV3[DIPResult](
+            results=data["results"],
+            has_next_page=bool(data["links"].get("next")),
+            page=page,
+            limit=limit,
+        )
