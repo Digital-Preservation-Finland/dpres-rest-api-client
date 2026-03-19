@@ -3,12 +3,13 @@ Client module for querying and downloading DIPs using the National Digital
 Preservation Services REST API.
 """
 
-from datetime import datetime, timezone
 import functools
 import time
-from urllib.parse import quote
+import warnings
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import TypedDict
+from urllib.parse import quote
 
 import requests
 
@@ -51,6 +52,12 @@ class AccessClient(BaseClient):
         :param str query: Search query based on Solr's dialect of the
                           Lucene query syntax.
         """
+        warnings.warn(
+            "V2 search functionality is deprecated. "
+            "Consider using RestClient.search instead.",
+            DeprecationWarning,
+            stacklevel=2
+        )
         params = {"page": page, "limit": limit}
 
         if query:
