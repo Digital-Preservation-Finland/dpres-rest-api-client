@@ -13,6 +13,10 @@ Added
 ~~~~~
 - Add ``RestClient.search`` method for performing package searches using the V3 API
 
+Fixed
+~~~~~
+- Fix ``SearchResult.prev_url`` never being populated in ``AccessClient.search`` response even if previous URL is available
+
 
 `1.1.0`_ - 2026-01-28
 ---------------------

@@ -60,8 +60,8 @@ class AccessClient(BaseClient):
         data = response.json()["data"]
 
         prev_url = None
-        if data["links"].get("prev"):
-            prev_url = f"{self.host}{data['links']['prev']}"
+        if data["links"].get("previous"):
+            prev_url = f"{self.host}{data['links']['previous']}"
 
         next_url = None
         if data["links"].get("next"):
