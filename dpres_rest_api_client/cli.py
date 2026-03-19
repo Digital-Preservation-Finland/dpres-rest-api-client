@@ -253,7 +253,7 @@ def search(ctx, page, limit, query, pager):
     """
     List and search for packages in the DPRES service.
     """
-    client = ctx.obj.client_v2
+    client = ctx.obj.client_v3
     echo_func = click.echo_via_pager if pager else click.echo
 
     search_results = client.search(page=page, limit=limit, query=query)
@@ -261,25 +261,29 @@ def search(ctx, page, limit, query, pager):
 
     for entry in search_results.results:
         lastmoddate = "N/A"
+        content_id = "N/A"
 
-        if "lastmoddate" in entry:
+        if entry["lastmoddate"] is not None:
             lastmoddate = entry["lastmoddate"]
 
+        if entry["content_id"] is not None:
+            content_id = entry["content_id"]
+
         results.append(
-            (entry["id"], entry["pkg_type"], entry["createdate"], lastmoddate)
+            (
+                entry["aip_id"], content_id,
+                entry["createdate"], lastmoddate
+            )
         )
 
     tabulated = tabulate.tabulate(
         results,
-        headers=("ID", "Type", "Creation date", "Modification date")
+        headers=("AIP ID", "CONTENTID", "Creation date", "Modification date")
     )
-
-    # 'next' URL is provided if more results are available.
-    more_results_available = bool(search_results.next_url)
 
     output = "".join([
         f"Displaying page {page} with {len(results)} results. ",
-        "More page(s) are available." if more_results_available else "",
+        "More page(s) are available." if search_results.has_next_page else "",
         "\n\n",
         tabulated
     ])

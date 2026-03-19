@@ -51,36 +51,27 @@ def test_search(cli_runner, access_rest_api_host, requests_mock):
         {
             "page": 1,
             "limit": 1000,
-            # Default search query if user didn't provide one
-            "q": "pkg_type:AIP",
         }
     )
 
     requests_mock.get(
-        f"{access_rest_api_host}/api/2.0/urn:uuid:fake_contract_id/"
+        f"{access_rest_api_host}/api/3.0/urn:uuid:fake_contract_id/"
         f"search?{qs_encoded}",
         json={
             "status": "success",
             "data": {
                 "results": [
                     {
-                        "location": (
-                            "/api/2.0/urn:uuid:fake_contract_id/preserved/"
-                            "spam"
-                        ),
+                        "aip_id": "spam",
+                        "content_id": None,
                         "createdate": "2021-08-01T08:59:05Z",
-                        "id": "spam",
-                        "pkg_type": "AIP",
+                        "lastmoddate": None,
                     },
                     {
-                        "location": (
-                            "/api/2.0/urn:uuid:fake_contract_id/preserved/"
-                            "eggs"
-                        ),
+                        "aip_id": "eggs",
+                        "content_id": "eggs-contentid",
                         "createdate": "2021-08-02T09:01:58Z",
                         "lastmoddate": "2021-08-03T09:01:58Z",
-                        "id": "eggs",
-                        "pkg_type": "AIP",
                     },
                 ],
                 "links": {"self": "/"},
@@ -97,13 +88,24 @@ def test_search(cli_runner, access_rest_api_host, requests_mock):
     assert "2021-08-01T08:59:05Z" in output
     assert "N/A" in output
 
-    # ID, package type, creation date and modification date
-    # are shown in that order
-    assert output.index("AIP") > output.index("spam")
-    assert output.index("2021-08-01T08:59:05Z") > output.index("AIP")
-    assert output.index("N/A") > output.index("2021-08-01T08:59:05Z")
+    # Get the two found entries and their columns in order
+    first_line = next(
+        line for line in output.split("\n") if line.startswith("spam")
+    ).split(" ")
+    first_line = list(filter(bool, first_line))
 
-    assert "eggs" in output
+    second_line = next(
+        line for line in output.split("\n") if line.startswith("eggs")
+    ).split(" ")
+    second_line = list(filter(bool, second_line))
+
+    # Check that AIP ID, CONTENTID, creation and modification date are
+    # presented in correct order
+    assert first_line == ["spam", "N/A", "2021-08-01T08:59:05Z", "N/A"]
+    assert second_line == [
+        'eggs', 'eggs-contentid',
+        '2021-08-02T09:01:58Z', '2021-08-03T09:01:58Z'
+    ]
 
 
 def test_search_query(cli_runner, access_rest_api_host, requests_mock):
@@ -113,21 +115,17 @@ def test_search_query(cli_runner, access_rest_api_host, requests_mock):
     qs_encoded = urlencode({"page": 1, "limit": 1000, "q": "mets_OBJID:eggs"})
 
     requests_mock.get(
-        f"{access_rest_api_host}/api/2.0/urn:uuid:fake_contract_id/"
+        f"{access_rest_api_host}/api/3.0/urn:uuid:fake_contract_id/"
         f"search?{qs_encoded}",
         json={
             "status": "success",
             "data": {
                 "results": [
                     {
-                        "location": (
-                            "/api/2.0/urn:uuid:fake_contract_id/preserved/"
-                            "eggs"
-                        ),
+                        "aip_id": "eggs",
+                        "content_id": None,
                         "createdate": "2021-08-02T09:01:58Z",
                         "lastmoddate": "2021-08-03T09:01:58Z",
-                        "id": "eggs",
-                        "pkg_type": "AIP",
                     }
                 ],
                 "links": {"self": "/"},
