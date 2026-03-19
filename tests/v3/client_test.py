@@ -2,6 +2,9 @@
 
 import pytest
 from requests.exceptions import HTTPError
+from urllib.parse import urlencode
+
+from dpres_rest_api_client.v3.client import SearchResultV3
 
 
 @pytest.mark.usefixtures("mock_tus_endpoints")
@@ -104,3 +107,134 @@ def test_list_transfers(
         assert search_result.next_url
     else:
         assert not search_result.next_url
+
+
+def _create_search_result(results, next=None, previous=None):
+    return {
+        "status": "success",
+        "data": {
+            "results": results,
+            "links": {
+                "self": "/",
+                "next": next,
+                "previous": previous
+            }
+        }
+    }
+
+
+@pytest.mark.parametrize(
+    "page,query,expected",
+    [
+        (
+            None, None,
+            SearchResultV3(
+                results=[
+                    {
+                        "aip_id": "aip_id_1",
+                        "content_id": "content_id_1",
+                        "createdate": "2026-01-01T12:00:00Z",
+                        "lastmoddate": None,
+                    },
+                    {
+                        "aip_id": "aip_id_1_v2",
+                        "content_id": None,
+                        "createdate": "2026-01-01T12:00:00Z",
+                        "lastmoddate": "2026-01-02T12:00:00Z",
+                    }
+                ],
+                has_next_page=True,
+                page=1,
+                limit=1000
+            ),
+        ),
+        (
+            2, None,
+            SearchResultV3(
+                results=[
+                    {
+                        "aip_id": "aip_id_2",
+                        "content_id": "content_id_2",
+                        "createdate": "2026-02-01T12:00:00Z",
+                        "lastmoddate": None,
+                    }
+                ],
+                has_next_page=False,
+                page=2,
+                limit=1000
+            )
+        ),
+        (
+            None, "file_id:aip_id_3",
+            SearchResultV3(
+                results=[
+                    {
+                        "aip_id": "aip_id_3",
+                        "content_id": "content_id_3",
+                        "createdate": "2026-02-01T12:00:00Z",
+                        "lastmoddate": None,
+                    }
+                ],
+                has_next_page=False,
+                page=1,
+                limit=1000
+            )
+        )
+    ]
+)
+def test_search(
+        client_v3, access_rest_api_host, contract_id,
+        requests_mock, page, query, expected):
+    """Test that correct results are returned for each set of parameters"""
+    requests_mock.get(
+        f"{access_rest_api_host}/api/3.0/{contract_id}/search",
+        json=_create_search_result([
+            {
+                "aip_id": "aip_id_1",
+                "content_id": "content_id_1",
+                "createdate": "2026-01-01T12:00:00Z",
+                "lastmoddate": None,
+            },
+            {
+                "aip_id": "aip_id_1_v2",
+                "content_id": None,
+                "createdate": "2026-01-01T12:00:00Z",
+                "lastmoddate": "2026-01-02T12:00:00Z",
+            }
+        ], next="?page=2"),
+    )
+    requests_mock.get(
+        f"{access_rest_api_host}/api/3.0/{contract_id}/search?page=2",
+        json=_create_search_result([
+            {
+                "aip_id": "aip_id_2",
+                "content_id": "content_id_2",
+                "createdate": "2026-02-01T12:00:00Z",
+                "lastmoddate": None,
+            }
+        ], previous="?page=1")
+    )
+    requests_mock.get(
+        f"{access_rest_api_host}/api/3.0/{contract_id}/search"
+        f"?{urlencode({'q': 'file_id:aip_id_3'})}",
+        json=_create_search_result([
+            {
+                "aip_id": "aip_id_3",
+                "content_id": "content_id_3",
+                "createdate": "2026-02-01T12:00:00Z",
+                "lastmoddate": None,
+            }
+        ])
+    )
+
+    params = {}
+    if page is not None:
+        params["page"] = page
+    if query is not None:
+        params["query"] = query
+
+    search_result = client_v3.search(**params)
+
+    assert search_result.results == expected.results
+    assert search_result.has_next_page == expected.has_next_page
+    assert search_result.page == expected.page

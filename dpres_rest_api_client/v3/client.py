@@ -4,17 +4,56 @@ Client module to utilize National Digital Preservation Services REST API 3.0.
 from __future__ import annotations
 
 import os
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Generic, TypeVar
+
+from dataclasses import dataclass
 
 from requests.auth import HTTPBasicAuth
 from requests.exceptions import HTTPError
 from tusclient import client
 from tusclient.storage import filestorage
 
+from typing import TypedDict
+
 from dpres_rest_api_client.base import BaseClient, SearchResult
 
 if TYPE_CHECKING:
     from tusclient.uploader import Uploader
+
+
+Result = TypeVar("Result")
+
+
+@dataclass
+class SearchResultV3(Generic[Result]):
+    """
+    Container for a set of search results
+    """
+    results: list[Result]
+    has_next_page: bool
+    page: int
+    limit: int
+
+    @classmethod
+    def from_data(cls, data: dict, page: int, limit: int) -> SearchResultV3:
+        return cls(
+            results=data["results"],
+            has_next_page=bool(data["links"].get("next")),
+            page=page,
+            limit=limit
+        )
+
+
+class AIPResult(TypedDict):
+    """
+    Individual result returned by /v3/<contract>/search
+    """
+    aip_id: str
+    content_id: str | None
+    createdate: str
+    lastmoddate: str | None
+    location: str
+    match: dict | None
 
 
 class RestClient(BaseClient):
@@ -173,3 +212,28 @@ class RestClient(BaseClient):
         return SearchResult(
             results=data["results"], prev_url=prev_url, next_url=next_url
         )
+
+    def search(
+        self,
+        page: int = 1,
+        limit: int = 1000,
+        query: str | None = None
+    ) -> SearchResultV3[AIPResult]:
+        """
+        Perform a search for packages and return a SearchResult
+
+        :param page: Search result page.
+                     Defaults to 1 (i.e. the first page).
+        :param limit: Maximum amount of search results per page
+        :param query: Search query based on Solr's dialect of the
+                      Lucene query syntax.
+        """
+        params = {"page": page, "limit": limit}
+
+        if query:
+            params["q"] = query
+
+        response = self.session.get(f"{self.base_url}/search", params=params)
+        data = response.json()["data"]
+
+        return SearchResultV3.from_data(data=data, page=page, limit=limit)
