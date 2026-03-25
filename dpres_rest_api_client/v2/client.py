@@ -206,7 +206,7 @@ class AccessClient(BaseClient):
     def get_statistics(self) -> Statistics:
         """Get statistics from Digital Preservation Service.
 
-        :raises HTTPError: When response code is within 400 - 500 range.
+        :raises HTTPError: When response code is within 400 - 599 range.
         """
         url = f"{self.base_url}/statistics/overview"
         response = self.session.get(url)

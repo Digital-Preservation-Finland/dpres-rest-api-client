@@ -159,7 +159,7 @@ class RestClient(BaseClient):
 
         :param transfer_id: Transfer ID to fetch the information for.
         :return: JSON data from successful response.
-        :raises HTTPError: When response code is within 400 - 500 range.
+        :raises HTTPError: When response code is within 400 - 599 range.
         """
         url = f"{self.base_url}/transfers/{transfer_id}"
         response = self.session.get(url)
@@ -172,7 +172,7 @@ class RestClient(BaseClient):
         :param report_type: Report type to download, either "xml" or "html"
             (default: xml).
         :return: Content data in bytes from successful response.
-        :raises HTTPError: When response code is within 400 - 500 range.
+        :raises HTTPError: When response code is within 400 - 599 range.
         """
         url = f"{self.base_url}/transfers/{transfer_id}/report"
         params = {"type": report_type}
@@ -203,7 +203,7 @@ class RestClient(BaseClient):
         :param page: Which page number to view in integer.
         :param limit: Limit to how many results in integer.
         :return: JSON data from successful response.
-        :raises HTTPError: When response code is within 400 - 500 range.
+        :raises HTTPError: When response code is within 400 - 599 range.
         """
         url = f"{self.base_url}/transfers"
         params = {"page": page, "limit": limit}
