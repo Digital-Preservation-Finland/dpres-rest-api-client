@@ -15,7 +15,7 @@ from tusclient.storage import filestorage
 
 from typing import TypedDict
 
-from dpres_rest_api_client.base import BaseClient, SearchResult
+from dpres_rest_api_client.base import BaseClient
 
 if TYPE_CHECKING:
     from tusclient.uploader import Uploader
@@ -54,6 +54,19 @@ class AIPResult(TypedDict):
     lastmoddate: str | None
     location: str
     match: dict | None
+
+
+class TransferResult(TypedDict):
+    """
+    Individual result returned by /v3/<contract>/transfers
+    """
+    transfer_id: str
+    filename: str
+    status: str
+    transfer: str | None
+    actions: dict
+    sip: str
+    timestamp: str
 
 
 class RestClient(BaseClient):
@@ -199,18 +212,8 @@ class RestClient(BaseClient):
         response = self.session.get(url, params=params)
         data = response.json()["data"]
 
-        prev_url = None
-        if data["links"].get("previous"):
-            links_prev_url = data["links"]["previous"].lstrip("/")
-            prev_url = f"{self.host}/{links_prev_url}"
-
-        next_url = None
-        if data["links"].get("next"):
-            links_next_url = data["links"]["next"].lstrip("/")
-            next_url = f"{self.host}/{links_next_url}"
-
-        return SearchResult(
-            results=data["results"], prev_url=prev_url, next_url=next_url
+        return SearchResultV3[TransferResult].from_data(
+            data=data, page=page, limit=limit
         )
 
     def search(

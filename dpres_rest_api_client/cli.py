@@ -587,7 +587,7 @@ def list_transfers(ctx, status, page, limit, pager):
     )
 
     # 'next' URL is provided if more results are available.
-    more_results_available = bool(search_results.next_url)
+    more_results_available = bool(search_results.has_next_page)
 
     output = "".join(
         [
