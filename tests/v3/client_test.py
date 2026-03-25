@@ -80,27 +80,43 @@ def test_delete_transfer(client_v3, transfer_id, expected_success):
 
 @pytest.mark.usefixtures("mock_access_rest_api_v3_list_endpoint")
 @pytest.mark.parametrize(
-    ("status", "page", "limit", "expected_count", "has_next"),
+    ("page", "limit", "expected_count", "has_next"),
     [
-        (None, None, None, 20, False),
-        (None, None, "5", 5, True),
-        (None, "2", "5", 5, True),
-        ("accepted", "1", "20", 5, False),
+        (None, None, 20, False),
+        (None, 5, 5, True),
+        (2, 5, 5, True),
     ],
-    ids=["Normal listing", "Limited listing", "Page 2", "Status filtered"],
+    ids=["Normal listing", "Limited listing", "Page 2"],
 )
-def test_list_transfers(
-    client_v3, status, page, limit, expected_count, has_next
+def test_list_transfers_paging(
+    client_v3, page, limit, expected_count, has_next
 ):
     """Test that we can get list of recent transfers."""
-    search_result = client_v3.list_transfers(
-        status=status, page=page, limit=limit
-    )
+    search_result = client_v3.list_transfers(page=page, limit=limit)
 
     assert len(search_result.results) == expected_count
     assert search_result.page == page
     assert search_result.limit == limit
     assert search_result.has_next_page == has_next
+
+
+@pytest.mark.usefixtures("mock_access_rest_api_v3_list_endpoint")
+@pytest.mark.parametrize("status", [None, "accepted"])
+def test_list_transfers(client_v3, status):
+    """Test retrieving transfers, with and without status filtering"""
+    search_result = client_v3.list_transfers(status=status)
+
+    if status is None:
+        # No status filtering, transfers of every status are returned
+        found_statuses = {entry["status"] for entry in search_result.results}
+        assert found_statuses == {
+            "accepted", "in_progress", "rejected", "uploading"
+        }
+    else:
+        # Status filtering active, only transfers of one status returned
+        assert all(
+            entry["status"] == status for entry in search_result.results
+        )
 
 
 def _create_search_result(results, next=None, previous=None):
