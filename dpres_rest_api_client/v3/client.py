@@ -262,12 +262,13 @@ class RestClient(BaseClient):
         List of completed DIPs in Digital Preservation Service.
         Incompleted DIPs are listed using completed=False parameter.
 
-        :param bool complete: Default True value lists all completed DIPs, for
-        listing incomplete DIPs use False.
+        :param bool complete: True lists only the completed DIPs.
+        False lists DIPs in progress. Default value None returns
+        all DIPs regardless of the completion status.
         :param int page: Which response page to view as an integer.
         :param int limit: Maximum number of DIPs as an integer.
         :return: JSON data from succesfull response.
-        :raises HTTPError: When response code is wihin 400 - 500 range.
+        :raises HTTPError: When response code is wihin 400 - 599 range.
         """
         url = f"{self.base_url}/disseminated"
         params = {"page": page, "limit": limit}
