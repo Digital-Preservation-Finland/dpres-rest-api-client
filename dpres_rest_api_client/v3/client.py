@@ -278,9 +278,4 @@ class RestClient(BaseClient):
         response = self.session.get(url, params=params)
         data = response.json()["data"]
 
-        return SearchResultV3[DIPResult](
-            results=data["results"],
-            has_next_page=bool(data["links"].get("next")),
-            page=page,
-            limit=limit,
-        )
+        return SearchResultV3[DIPResult].from_data(data=data, page=page, limit=limit)
