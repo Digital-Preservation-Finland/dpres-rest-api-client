@@ -267,7 +267,6 @@ class RestClient(BaseClient):
         all DIPs regardless of the completion status.
         :param int page: Which response page to view as an integer.
         :param int limit: Maximum number of DIPs as an integer.
-        :return: JSON data from succesfull response.
         :raises HTTPError: When response code is wihin 400 - 599 range.
         """
         url = f"{self.base_url}/disseminated"
