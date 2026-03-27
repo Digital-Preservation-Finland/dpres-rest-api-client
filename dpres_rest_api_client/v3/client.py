@@ -250,7 +250,9 @@ class RestClient(BaseClient):
         response = self.session.get(f"{self.base_url}/search", params=params)
         data = response.json()["data"]
 
-        return SearchResultV3[AIPResult].from_data(data=data, page=page, limit=limit)
+        return SearchResultV3[AIPResult].from_data(
+            data=data, page=page, limit=limit
+        )
 
     def list_dips(
         self,
@@ -277,4 +279,6 @@ class RestClient(BaseClient):
         response = self.session.get(url, params=params)
         data = response.json()["data"]
 
-        return SearchResultV3[DIPResult].from_data(data=data, page=page, limit=limit)
+        return SearchResultV3[DIPResult].from_data(
+            data=data, page=page, limit=limit
+        )
