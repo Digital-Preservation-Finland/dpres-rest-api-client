@@ -14,7 +14,7 @@ and this project adheres to `Semantic Versioning <https://semver.org/spec/v2.0.0
 Added
 ~~~~~
 - Add ``RestClient.search`` method for performing package searches using the V3 API
-- Python client retrieves a list of DIPs from `/api/v3/disseminated`.
+- Add ``RestClient.list_dips`` method for retrieving lists of DIPs using the V3 API
 
 Changed
 ~~~~~~~
