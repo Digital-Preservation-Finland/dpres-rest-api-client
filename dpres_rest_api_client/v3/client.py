@@ -304,3 +304,8 @@ class RestClient(BaseClient):
         response = self.session.get(url)
         data = response.json()["data"]
         return StatisticsResult(**data)
+
+    def get_dip_info(self, dip_id: str) -> DIPResult:
+        url = f"{self.base_url}/disseminated/{dip_id}"
+        response = self.session.get(url).json()["data"]
+        return response
