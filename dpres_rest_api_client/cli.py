@@ -602,30 +602,29 @@ def list_transfers(ctx, status, page, limit, pager):
 
 @cli.command("statistics", help="Get statistics")
 @click.pass_context
-def statistics(ctx):
+def statistics(ctx: click.Context) -> None:
     """Get list of transfers and display their information."""
-    results = ctx.obj.client_v2.get_statistics()
+    results = ctx.obj.client_v3.get_statistics()
 
     # convert bytes to human readable units
     capacity_used = humanize.naturalsize(
-        results["capacity_used"],
-        binary=True
+        results["capacity"]["used"], binary=True
     )
     capacity_available = humanize.naturalsize(
-        results["capacity_available"],
-        binary=True
+        results["capacity"]["available"], binary=True
     )
     total_capacity = humanize.naturalsize(
-        results["capacity_total"],
-        binary=True
+        results["capacity"]["total"], binary=True
     )
+
+    figures = results["key_figures"]
 
     click.echo(
         f"Capacity used: {capacity_used}\n"
         f"Capacity available: {capacity_available}\n"
         f"Total capacity: {total_capacity}\n"
-        f"Accepted sips: {results['sips_accepted']}\n"
-        f"Preserved objects: {results['objects_preserved']}"
+        f"Accepted sips: {figures['sips_accepted']}\n"
+        f"Preserved objects: {figures['objects_preserved']}"
     )
 
 

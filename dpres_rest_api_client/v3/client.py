@@ -4,16 +4,13 @@ Client module to utilize National Digital Preservation Services REST API 3.0.
 from __future__ import annotations
 
 import os
-from typing import TYPE_CHECKING, Any, Generic, TypeVar
-
 from dataclasses import dataclass
+from typing import TYPE_CHECKING, Any, Generic, TypedDict, TypeVar
 
 from requests.auth import HTTPBasicAuth
 from requests.exceptions import HTTPError
 from tusclient import client
 from tusclient.storage import filestorage
-
-from typing import TypedDict
 
 from dpres_rest_api_client.base import BaseClient
 
@@ -78,6 +75,24 @@ class DIPResult(TypedDict):
     disseminated: str
     actions: dict
     timestamp: str
+
+
+class StatisticsResult(TypedDict):
+    """Individual result returned by `/v3/<contract>/statistics/overview`"""
+
+    capacity: _CapacityStats
+    key_figures: _KeyFiguresStats
+
+
+class _CapacityStats(TypedDict):
+    used: int
+    available: int
+    total: int
+
+
+class _KeyFiguresStats(TypedDict):
+    sips_accepted: int
+    objects_preserved: int
 
 
 class RestClient(BaseClient):
@@ -282,3 +297,10 @@ class RestClient(BaseClient):
         return SearchResultV3[DIPResult].from_data(
             data=data, page=page, limit=limit
         )
+
+    def get_statistics(self) -> StatisticsResult:
+        """Get the statistics overview for a contract"""
+        url = f"{self.base_url}/statistics/overview"
+        response = self.session.get(url)
+        data = response.json()["data"]
+        return StatisticsResult(**data)

@@ -208,6 +208,12 @@ class AccessClient(BaseClient):
 
         :raises HTTPError: When response code is within 400 - 599 range.
         """
+        warnings.warn(
+            "V2 statistics functionality is deprecated. "
+            "Consider using RestClient.statistics instead.",
+            DeprecationWarning,
+            stacklevel=2
+        )
         url = f"{self.base_url}/statistics/overview"
         response = self.session.get(url)
         data = response.json()["data"]

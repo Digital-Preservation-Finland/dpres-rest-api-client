@@ -1,10 +1,11 @@
 """Module that tests dpres_rest_api_client.v3.client."""
 
-import pytest
-from requests.exceptions import HTTPError
 from urllib.parse import urlencode
 
-from dpres_rest_api_client.v3.client import SearchResultV3
+import pytest
+from dpres_rest_api_client.v3.client import RestClient, SearchResultV3
+from requests.exceptions import HTTPError
+from requests_mock import mocker
 
 
 @pytest.mark.usefixtures("mock_tus_endpoints")
@@ -298,3 +299,36 @@ def test_search(
     assert search_result.results == expected.results
     assert search_result.has_next_page == expected.has_next_page
     assert search_result.page == expected.page
+
+
+def test_statistics_success(
+    client_v3: RestClient,
+    requests_mock: mocker.Mocker,
+    access_rest_api_host: str,
+    contract_id: str,
+) -> None:
+    """Test that statistics_overview returns correctly parsed data."""
+    url = f"{access_rest_api_host}/api/3.0/{contract_id}/statistics/overview"
+
+    api_response = {
+        "data": {
+            "capacity": {
+                "used": 100,
+                "available": 900,
+                "total": 1000,
+            },
+            "key_figures": {
+                "sips_accepted": 42,
+                "objects_preserved": 1337,
+            },
+        },
+        "status": "success",
+    }
+
+    mock = requests_mock.get(url, json=api_response, status_code=200)
+
+    result = client_v3.get_statistics()
+
+    assert result == api_response["data"]
+    assert mock.called
+    assert mock.call_count == 1
