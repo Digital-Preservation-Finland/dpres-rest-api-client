@@ -43,7 +43,7 @@ class SearchResultV3(Generic[Result]):
 
 class AIPResult(TypedDict):
     """
-    Individual result returned by /v3/<contract>/search
+    Individual result entry returned by search and /v3/<contract>/search
     """
     aip_id: str
     content_id: str | None
@@ -55,7 +55,8 @@ class AIPResult(TypedDict):
 
 class TransferResult(TypedDict):
     """
-    Individual result returned by /v3/<contract>/transfers
+    Individual result entry returned by list_transfers and
+    /v3/<contract>/transfers
     """
     transfer_id: str
     filename: str
@@ -68,12 +69,24 @@ class TransferResult(TypedDict):
 
 class DIPResult(TypedDict):
     """
-    Individual result returned by /v3/<contract>/disseminated
+    Individual result entry returned by list_dips and
+    /v3/<contract>/disseminated
     """
     dip_id: str
     complete: bool
     disseminated: str
     actions: dict
+    timestamp: str
+
+
+class DipInfoResult(TypedDict):
+    """
+    Result returned from get_dip_info and /v3/<contract>/disseminated/<dip-id>
+    """
+    dip_id: str
+    complete: bool
+    actions: dict
+    dip: dict
     timestamp: str
 
 
@@ -221,7 +234,12 @@ class RestClient(BaseClient):
         except HTTPError:
             return False
 
-    def list_transfers(self, status=None, page=1, limit=20):
+    def list_transfers(
+        self,
+        status=None,
+        page=1,
+        limit=20
+    ) -> SearchResultV3[TransferResult]:
         """
         Get list of recent transfers from Digital Preservation Service.
 
@@ -305,7 +323,7 @@ class RestClient(BaseClient):
         data = response.json()["data"]
         return StatisticsResult(**data)
 
-    def get_dip_info(self, dip_id: str) -> DIPResult:
+    def get_dip_info(self, dip_id: str) -> DipInfoResult:
         url = f"{self.base_url}/disseminated/{dip_id}"
         response = self.session.get(url).json()["data"]
         return response
