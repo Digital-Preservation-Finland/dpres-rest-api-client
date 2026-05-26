@@ -324,6 +324,12 @@ class RestClient(BaseClient):
         return StatisticsResult(**data)
 
     def get_dip_info(self, dip_id: str) -> DipInfoResult:
+        """Get dissemination information from Digital Preservation Service.
+
+        :param dip_id: The ID of the DIP
+        :return: JSON data from successful response.
+        :raises HTTPError: When response code is within 400 - 599 range.
+        """
         url = f"{self.base_url}/disseminated/{dip_id}"
         response = self.session.get(url).json()["data"]
         return response
