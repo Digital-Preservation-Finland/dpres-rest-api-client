@@ -332,3 +332,42 @@ def test_statistics_success(
     assert result == api_response["data"]
     assert mock.called
     assert mock.call_count == 1
+
+
+def test_get_dip_info(
+    client_v3, access_rest_api_host, contract_id, requests_mock
+):
+    """
+    Test the get_dip_info method. Make sure it sends the request and
+    the returned data is correct.
+    """
+
+    dip_id = "dip_id"
+    complete = True
+    download_url = f"{access_rest_api_host}/api/3.0/{contract_id}/disseminated/{dip_id}/download"
+    actions = {"download": download_url}
+    dip = {"dip_name": "testname"}
+    timestamp = "2026-02-01T12:00:00Z"
+
+    requests_mock.get(
+        f"{access_rest_api_host}/api/3.0/{contract_id}/disseminated/{dip_id}",
+        json={
+            "status": "success",
+            "data": {
+                "dip_id": dip_id,
+                "complete": complete,
+                "actions": actions,
+                "dip": dip,
+                "timestamp": timestamp,
+            },
+        },
+    )
+
+    dip_info = client_v3.get_dip_info(dip_id)
+
+    assert dip_info["dip_id"] == dip_id
+    assert dip_info["complete"] == complete
+    assert dip_info["actions"] == actions
+    assert dip_info["dip"] == dip
+    assert dip_info["timestamp"] == timestamp
+    assert dip_info["dip"]["dip_name"] == "testname"
