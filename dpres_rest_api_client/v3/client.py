@@ -79,7 +79,7 @@ class DIPResult(TypedDict):
     timestamp: str
 
 
-class DipInfoResult(TypedDict):
+class DIPInfoResult(TypedDict):
     """
     Result returned from get_dip_info and /v3/<contract>/disseminated/<dip-id>
     """
@@ -323,7 +323,7 @@ class RestClient(BaseClient):
         data = response.json()["data"]
         return StatisticsResult(**data)
 
-    def get_dip_info(self, dip_id: str) -> DipInfoResult:
+    def get_dip_info(self, dip_id: str) -> DIPInfoResult:
         """Get dissemination information from Digital Preservation Service.
 
         :param dip_id: The ID of the DIP
