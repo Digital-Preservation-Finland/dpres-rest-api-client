@@ -43,7 +43,8 @@ class SearchResultV3(Generic[Result]):
 
 class AIPResult(TypedDict):
     """
-    Individual result entry returned by search and /v3/<contract>/search
+    Individual result entry returned by :meth:`RestClient.search` and
+    /v3/<contract>/search
     """
     aip_id: str
     content_id: str | None
@@ -55,7 +56,7 @@ class AIPResult(TypedDict):
 
 class TransferResult(TypedDict):
     """
-    Individual result entry returned by list_transfers and
+    Individual result entry returned by :meth:`RestClient.list_transfers` and
     /v3/<contract>/transfers
     """
     transfer_id: str
@@ -69,7 +70,7 @@ class TransferResult(TypedDict):
 
 class DIPResult(TypedDict):
     """
-    Individual result entry returned by list_dips and
+    Individual result entry returned by :meth:`RestClient.list_dips` and
     /v3/<contract>/disseminated
     """
     dip_id: str
@@ -81,7 +82,8 @@ class DIPResult(TypedDict):
 
 class DIPInfoResult(TypedDict):
     """
-    Result returned from get_dip_info and /v3/<contract>/disseminated/<dip-id>
+    Result returned from :meth:`RestClient.get_dip_info` and
+    /v3/<contract>/disseminated/<dip-id>
     """
     dip_id: str
     complete: bool
@@ -91,7 +93,10 @@ class DIPInfoResult(TypedDict):
 
 
 class StatisticsResult(TypedDict):
-    """Individual result returned by `/v3/<contract>/statistics/overview`"""
+    """
+    Result returned by :meth:`RestClient.get_statistics` and
+    /v3/<contract>/statistics/overview
+    """
 
     capacity: _CapacityStats
     key_figures: _KeyFiguresStats
