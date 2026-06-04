@@ -1,7 +1,6 @@
 import json
 from configparser import ConfigParser
 from itertools import cycle
-from pathlib import Path
 from uuid import uuid4, UUID
 import pytest
 import requests_mock
@@ -11,22 +10,12 @@ from dpres_rest_api_client.cli import cli, Context
 from dpres_rest_api_client.v2.client import AccessClient as ClientV2
 from dpres_rest_api_client.v3.client import RestClient as ClientV3
 
-
 @pytest.fixture(scope="function")
-def testpath(tmpdir):
-    """
-    Create a temporary test directory
-    """
-    # TODO: Replace `testpath` with built-in `tmp_path` in pytest 3.9.0+
-    return Path(str(tmpdir))
-
-
-@pytest.fixture(scope="function")
-def home_config_path(testpath, monkeypatch):
+def home_config_path(tmp_path, monkeypatch):
     """
     Path to the user's configuration file in a mocked home directory
     """
-    home_dir = testpath / "home" / "testuser"
+    home_dir = tmp_path / "home" / "testuser"
     monkeypatch.setenv("HOME", str(home_dir))
 
     config_dir = home_dir / ".config" / "dpres_rest_api_client"

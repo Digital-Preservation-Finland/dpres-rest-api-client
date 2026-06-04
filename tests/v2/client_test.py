@@ -11,11 +11,11 @@ import dpres_rest_api_client.base
 import dpres_rest_api_client.v2.client
 
 
-def test_dip_request(testpath, access_rest_api_host, client_v2, requests_mock):
+def test_dip_request(tmp_path, access_rest_api_host, client_v2, requests_mock):
     """
     Test downloading a DIP using the AccessClient methods
     """
-    download_path = testpath / "spam.zip"
+    download_path = tmp_path / "spam.zip"
     requests_mock.post(
         f"{access_rest_api_host}/api/2.0/urn:uuid:fake_contract_id/preserved/"
         "spam/disseminate",

@@ -140,7 +140,7 @@ def test_search_query(cli_runner, access_rest_api_host, requests_mock):
     assert "spam" not in output
 
 
-def test_download(cli_runner, access_rest_api_host, requests_mock, testpath):
+def test_download(cli_runner, access_rest_api_host, requests_mock, tmp_path):
     """
     Test downloading a DIP using the `download` command.
     """
@@ -194,7 +194,7 @@ def test_download(cli_runner, access_rest_api_host, requests_mock, testpath):
         },
     )
 
-    download_dir = testpath / "download"
+    download_dir = tmp_path / "download"
     download_dir.mkdir()
 
     download_path = download_dir / "spam.zip"
