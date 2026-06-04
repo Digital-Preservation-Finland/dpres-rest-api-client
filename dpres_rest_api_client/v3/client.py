@@ -5,8 +5,11 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass
+from pathlib import Path
 from typing import TYPE_CHECKING, Any, Generic, TypedDict, TypeVar
+from collections.abc import Iterator
 
+from requests import Response
 from requests.auth import HTTPBasicAuth
 from requests.exceptions import HTTPError
 from tusclient import client
@@ -111,6 +114,46 @@ class _CapacityStats(TypedDict):
 class _KeyFiguresStats(TypedDict):
     sips_accepted: int
     objects_preserved: int
+
+
+class DIPDownloader:
+    """
+    A utility class for helping to download DIP files.
+    """
+
+    def __init__(self, response: Response):
+        """
+        :param response: *Streaming* response, from which content is read.
+        """
+        self.response = response
+
+        content_disposition = response.headers["Content-Disposition"]
+        prefix = "attachment; filename="
+        self.suggested_name = content_disposition[len(prefix):]
+
+    @property
+    def download_iter(self) -> Iterator[bytes]:
+        """
+        Iterator for reading the file
+        """
+        yield from self.response.iter_content(chunk_size=1024 * 1024)
+
+    def save(self, path: Path | None = None) -> Path:
+        """
+        Saves the file to disk.
+        :param path: An optional path to specify where to save the file.
+            Defaults to a file in working directory, with a name obtained from
+            the rest API.
+        :return: The path where the file is saved.
+        """
+
+        resolved_path = path if path is not None else Path(self.suggested_name)
+
+        with open(resolved_path, "wb", buffering=1024 * 1024) as file_:
+            for chunk in self.download_iter:
+                file_.write(chunk)
+
+        return resolved_path
 
 
 class RestClient(BaseClient):
@@ -338,3 +381,14 @@ class RestClient(BaseClient):
         url = f"{self.base_url}/disseminated/{dip_id}"
         response = self.session.get(url).json()["data"]
         return response
+
+    def get_downloader(self, dip_id: str) -> DIPDownloader:
+        """
+        Gets a downloader for a DIP
+        :param dip_id: ID of the dip to be downloaded
+        :return: A DIP downloader made for specified DIP.
+        """
+
+        url = f"{self.base_url}/disseminated/{dip_id}/download"
+        response = self.session.get(url, stream=True)
+        return DIPDownloader(response)
