@@ -1,5 +1,6 @@
 """Module that tests dpres_rest_api_client.v3.client."""
 
+from pathlib import Path
 from urllib.parse import urlencode
 
 import pytest
@@ -371,3 +372,66 @@ def test_get_dip_info(
     assert dip_info["dip"] == dip
     assert dip_info["timestamp"] == timestamp
     assert dip_info["dip"]["dip_name"] == "testname"
+
+
+def test_download_dip(
+    client_v3: RestClient,
+    requests_mock: mocker.Mocker,
+    access_rest_api_host: str,
+    contract_id: str,
+    tmp_path: Path,
+) -> None:
+    """Test that dip gets downloaded into a file."""
+
+    dip_id = "testid"
+    url = f"{access_rest_api_host}/api/3.0/{contract_id}/disseminated/{dip_id}/download"
+
+    data = b"abc"
+
+    filename = "testtar.tar"
+
+    requests_mock.get(
+        url,
+        content=data,
+        status_code=200,
+        headers={"Content-Disposition": f"attachment; filename={filename}"},
+    )
+
+    downloader = client_v3.get_downloader(dip_id)
+    downloader.save(tmp_path / filename)
+
+    expected_path = tmp_path / filename
+
+    assert downloader.suggested_name == filename
+    assert expected_path.exists()
+
+    with open(expected_path, "rb") as file:
+        read_contents = file.read()
+
+    assert read_contents == data
+
+
+def test_stream_dip(
+    client_v3: RestClient,
+    requests_mock: mocker.Mocker,
+    access_rest_api_host: str,
+    contract_id: str,
+) -> None:
+    """Test that dip download can be streamed with iterators."""
+
+    dip_id = "testid"
+    url = f"{access_rest_api_host}/api/3.0/{contract_id}/disseminated/{dip_id}/download"
+    data = b"abc"
+
+    requests_mock.get(
+        url,
+        content=data,
+        status_code=200,
+        headers={"Content-Disposition": "attachment; filename=testtar.tar"},
+    )
+
+
+    downloader = client_v3.get_downloader(dip_id)
+    resulting_bytes_iterator = downloader.download_iter
+
+    assert data == b"".join(resulting_bytes_iterator)
