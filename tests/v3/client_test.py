@@ -398,11 +398,11 @@ def test_download_dip(
     )
 
     downloader = client_v3.get_downloader(dip_id)
-    downloader.save(tmp_path / filename)
+    downloader.save(tmp_path / downloader.suggested_filename)
 
     expected_path = tmp_path / filename
 
-    assert downloader.suggested_name == filename
+    assert downloader.suggested_filename == filename
     assert expected_path.exists()
 
     with open(expected_path, "rb") as file:

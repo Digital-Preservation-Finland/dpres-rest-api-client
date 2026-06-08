@@ -125,29 +125,27 @@ class DIPDownloader:
         """
         :param response: *Streaming* response, from which content is read.
         """
-        self.response = response
+        self._response = response
 
         content_disposition = response.headers["Content-Disposition"]
         prefix = "attachment; filename="
-        self.suggested_name = content_disposition[len(prefix):]
+        self.suggested_filename = content_disposition[len(prefix):]
 
     @property
     def download_iter(self) -> Iterator[bytes]:
         """
         Iterator for reading the file
         """
-        yield from self.response.iter_content(chunk_size=1024 * 1024)
+        yield from self._response.iter_content(chunk_size=1024 * 1024)
 
-    def save(self, path: Path | None = None) -> Path:
+    def save(self, path: os.PathLike | str) -> Path:
         """
         Saves the file to disk.
-        :param path: An optional path to specify where to save the file.
-            Defaults to a file in working directory, with a name obtained from
-            the rest API.
+        :param path: A path to specify where to save the file.
         :return: The path where the file is saved.
         """
 
-        resolved_path = path if path is not None else Path(self.suggested_name)
+        resolved_path = Path(path)
 
         with open(resolved_path, "wb", buffering=1024 * 1024) as file_:
             for chunk in self.download_iter:
