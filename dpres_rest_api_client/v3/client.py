@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, Generic, TypedDict, TypeVar
 from collections.abc import Iterator
 
-from requests import Response
+from requests import Response, Request, PreparedRequest
 from requests.auth import HTTPBasicAuth
 from requests.exceptions import HTTPError
 from tusclient import client
@@ -380,13 +380,26 @@ class RestClient(BaseClient):
         response = self.session.get(url).json()["data"]
         return response
 
-    def get_downloader(self, dip_id: str) -> DIPDownloader:
+    def get_dip_download_request(self, dip_id: str) -> PreparedRequest:
+        """
+        Gets a request containing all necessary information for fetching a DIP.
+        :param dip_id: ID of the dip to be downloaded
+        :return: A prepared request for downloading DIP
+        """
+        url = f"{self.base_url}/disseminated/{dip_id}/download"
+        return self.session.prepare_request(Request("GET", f"{url}"))
+
+    def get_dip_downloader(self, dip_id: str) -> DIPDownloader:
         """
         Gets a downloader for a DIP
         :param dip_id: ID of the dip to be downloaded
         :return: A DIP downloader made for specified DIP.
         """
 
-        url = f"{self.base_url}/disseminated/{dip_id}/download"
-        response = self.session.get(url, stream=True)
+        request = self.get_dip_download_request(dip_id)
+        settings = self.session.merge_environment_settings(
+            None, None, None, None, None
+        )
+        settings["stream"] = True
+        response = self.session.send(request, **settings)
         return DIPDownloader(response)

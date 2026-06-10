@@ -1,5 +1,6 @@
 """Module that tests dpres_rest_api_client.v3.client."""
 
+from base64 import b64encode
 from pathlib import Path
 from urllib.parse import urlencode
 
@@ -374,6 +375,26 @@ def test_get_dip_info(
     assert dip_info["dip"]["dip_name"] == "testname"
 
 
+def test_download_dip_request(
+    client_v3: RestClient,
+    access_rest_api_host: str,
+    contract_id: str,
+):
+    """Test that the DIP request contains right values"""
+    dip_id = "testid"
+    request = client_v3.get_dip_download_request(dip_id)
+    assert (
+        request.url
+        == f"{access_rest_api_host}/api/3.0/{contract_id}/disseminated/{dip_id}/download"
+    )
+
+    assert "Authorization" in request.headers
+
+    auth_token = (b64encode(b"fakeuser:fakepassword")).decode()
+
+    assert request.headers["Authorization"] == "Basic " + auth_token
+
+
 def test_download_dip(
     client_v3: RestClient,
     requests_mock: mocker.Mocker,
@@ -397,7 +418,7 @@ def test_download_dip(
         headers={"Content-Disposition": f"attachment; filename={filename}"},
     )
 
-    downloader = client_v3.get_downloader(dip_id)
+    downloader = client_v3.get_dip_downloader(dip_id)
     downloader.save(tmp_path / downloader.suggested_filename)
 
     expected_path = tmp_path / filename
@@ -430,8 +451,7 @@ def test_stream_dip(
         headers={"Content-Disposition": "attachment; filename=testtar.tar"},
     )
 
-
-    downloader = client_v3.get_downloader(dip_id)
+    downloader = client_v3.get_dip_downloader(dip_id)
     resulting_bytes_iterator = downloader.download_iter
 
     assert data == b"".join(resulting_bytes_iterator)
