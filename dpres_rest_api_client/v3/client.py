@@ -398,7 +398,7 @@ class RestClient(BaseClient):
 
         request = self.get_dip_download_request(dip_id)
         settings = self.session.merge_environment_settings(
-            None, None, None, None, None
+            request.url, {}, None, None, None
         )
         settings["stream"] = True
         response = self.session.send(request, **settings)
