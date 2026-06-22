@@ -122,6 +122,7 @@ def get_config():
 def get_default_config_path() -> Path:
     return _get_user_config_path()
 
+
 def write_default_config():
     """
     Write default config to the default configuration path if the file
