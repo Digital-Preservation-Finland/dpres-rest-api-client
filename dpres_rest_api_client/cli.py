@@ -15,7 +15,10 @@ from click.exceptions import ClickException
 from requests.exceptions import HTTPError
 
 from dpres_rest_api_client.base import get_poll_interval_iter
-from dpres_rest_api_client.config import write_default_config
+from dpres_rest_api_client.config import (
+    write_default_config,
+    get_default_config_path,
+)
 from dpres_rest_api_client.v2.client import AccessClient
 from dpres_rest_api_client.v3.client import RestClient as ClientV3
 
@@ -49,7 +52,7 @@ def cli(ctx):
 @cli.command(
     # Define command name for backwards compatibility with Click 6 and older
     "write-config",
-    help="Write default configuration file"
+    help=f"Write default configuration file to {get_default_config_path()}",
 )
 def write_config():
     """
@@ -61,7 +64,9 @@ def write_config():
     if path:
         click.echo(f"Configuration file written to {path}")
     else:
-        click.echo("Configuration file already exists")
+        click.echo(
+            f"Configuration file already exists at {get_default_config_path()}"
+        )
 
 
 @cli.group()

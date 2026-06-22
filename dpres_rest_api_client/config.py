@@ -119,22 +119,25 @@ def get_config():
     return config
 
 
+def get_default_config_path() -> Path:
+    return _get_user_config_path()
+
 def write_default_config():
     """
-    Write default config to the user's configuration directory if the file
+    Write default config to the default configuration path if the file
     does not exist
 
     :returns: Path to the configuration file if it was written, None otherwise
     """
-    user_config_path = _get_user_config_path()
+    default_config_path = get_default_config_path()
 
-    if user_config_path.is_file():
+    if default_config_path.is_file():
         return None
 
-    user_config_path.parent.mkdir(parents=True, exist_ok=True)
-    user_config_path.write_text(DEFAULT_CONFIG)
+    default_config_path.parent.mkdir(parents=True, exist_ok=True)
+    default_config_path.write_text(DEFAULT_CONFIG)
 
-    return user_config_path
+    return default_config_path
 
 
 class LazyConfig(UserDict):

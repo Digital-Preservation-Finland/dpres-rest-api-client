@@ -38,7 +38,7 @@ file by running
     $ dpres-client write-config
 
 Edit the configuration file with necessary credentials.
-You can also save the configuration file at ``/etc/dpres_rest_api_client/config.conf``
+The default configuration file path is ``~/.config/dpres_rest_api_client/config.conf``. You can also save the configuration file at ``/etc/dpres_rest_api_client/config.conf``
 or define the path using the environment variable ``DPRES_REST_API_CLIENT_CONF``.
 
 **Ingest content to the DPS**
