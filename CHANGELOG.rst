@@ -14,6 +14,7 @@ Added
 ~~~~~
 - Add ``RestClient.get_dip_info`` method for getting information about individual dissemination
 - Add ``RestClient.get_dip_download_request`` and ``RestClient.get_dip_downloader`` methods, and ``DIPDownloader`` class for downloading DIPs.
+- Add ``RestClient.delete_dip`` method for deleting dips.
 
 
 `2.0.0`_ - 2026-04-10

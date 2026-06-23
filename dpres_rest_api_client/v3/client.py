@@ -403,3 +403,12 @@ class RestClient(BaseClient):
         settings["stream"] = True
         response = self.session.send(request, **settings)
         return DIPDownloader(response)
+
+    def delete_dip(self, dip_id: str) -> None:
+        """Delete dissemination information package.
+
+        :param dip_id: ID of the DIP to delete.
+        :raises HTTPError: If the DIP was not deleted
+        """
+        url = f"{self.base_url}/disseminated/{dip_id}"
+        self.session.delete(url)

@@ -455,3 +455,31 @@ def test_stream_dip(
     resulting_bytes_iterator = downloader.download_iter
 
     assert data == b"".join(resulting_bytes_iterator)
+
+
+@pytest.mark.parametrize(
+    ("dip_id", "expected_status_code"),
+    [("testid1", 204), ("testid2", 404)],
+)
+def test_delete_dip(
+    client_v3: RestClient,
+    requests_mock: mocker.Mocker,
+    access_rest_api_host: str,
+    contract_id: str,
+    dip_id: str,
+    expected_status_code: int
+) -> None:
+    """Test that DIPs are deleted. Successful deletes have response code 204.
+    4xx and 5xx codes raise exception."""
+
+    url = f"{access_rest_api_host}/api/3.0/{contract_id}/disseminated/{dip_id}"
+    delete = requests_mock.delete(url, status_code=expected_status_code)
+
+    if expected_status_code == 204:
+        client_v3.delete_dip(dip_id)
+        assert delete.called_once
+    else:
+        with pytest.raises(HTTPError) as e:
+            client_v3.delete_dip(dip_id)
+        assert delete.called_once
+        assert e.value.response.status_code == expected_status_code
