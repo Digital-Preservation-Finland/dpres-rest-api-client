@@ -39,7 +39,8 @@ def test_write_config(cli_runner, home_config_path):
 
     # If the file exists, nothing is written at all
     result = cli_runner(["write-config"])
-    assert "Configuration file already exists" in result.output
+    assert (f"Configuration file already exists at {home_config_path}" in
+            result.output)
     assert home_config_path.read_text() == "overwritten config"
 
 
