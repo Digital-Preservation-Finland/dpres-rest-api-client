@@ -120,6 +120,10 @@ def get_config():
 
 
 def get_default_config_path() -> Path:
+    """
+    Gets the default configuration path. This path is used when writing the
+    default configuration file.
+    """
     return _get_user_config_path()
 
 
