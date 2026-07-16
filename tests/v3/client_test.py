@@ -1,11 +1,19 @@
 """Module that tests dpres_rest_api_client.v3.client."""
-
+import re
 from base64 import b64encode
 from pathlib import Path
 from urllib.parse import urlencode
 
 import pytest
-from dpres_rest_api_client.v3.client import RestClient, SearchResultV3
+from dpres_rest_api_client.v3.client import (
+    RestClient,
+    SearchResultV3,
+    AIPID,
+    DIPID,
+    DisseminationAIPEntry,
+    DisseminationIDType,
+    DIPFormat,
+)
 from requests.exceptions import HTTPError
 from requests_mock import mocker
 
@@ -483,3 +491,110 @@ def test_delete_dip(
             client_v3.delete_dip(dip_id)
         assert delete.called_once
         assert e.value.response.status_code == expected_status_code
+
+
+@pytest.mark.parametrize(
+    ("method_args", "expected_request"),
+    [
+        (
+            {"aip": AIPID("test_aip_id_1")},
+            {"aips": [{"aip_id": "test_aip_id_1"}]},
+        ),
+        (
+            {
+                "aip_list": [
+                    DisseminationAIPEntry(
+                        AIPID("test_aip_id_2"), ["0", "1", "2"]
+                    )
+                ],
+                "id_type": DisseminationIDType.DIV,
+            },
+            {
+                "aips": [{"aip_id": "test_aip_id_2", "ids": ["0", "1", "2"]}],
+                "id_type": "div",
+            },
+        ),
+        (
+            {"aip": AIPID("test_aip_id_3"), "name": "testname"},
+            {"aips": [{"aip_id": "test_aip_id_3"}], "dip_name": "testname"},
+        ),
+        (
+            {"aip": AIPID("test_aip_id_4"), "catalog": "1.8"},
+            {"aips": [{"aip_id": "test_aip_id_4"}], "catalog": "1.8"},
+        ),
+        (
+            {"aip": AIPID("test_aip_id_5"), "dip_format": DIPFormat.TAR},
+            {"aips": [{"aip_id": "test_aip_id_5"}], "format": "tar"},
+        ),
+        (
+            {"aip": AIPID("test_aip_id_6"), "only_metadata": True},
+            {"aips": [{"aip_id": "test_aip_id_6"}], "only_metadata": True},
+        ),
+    ],
+)
+def test_disseminate(
+    client_v3: RestClient,
+    requests_mock: mocker.Mocker,
+    access_rest_api_host: str,
+    contract_id: str,
+    method_args,
+    expected_request,
+) -> None:
+    """Tests that RestClient.disseminate makes right kind of HTTP requests with
+    correct format, with different parameters.
+    """
+
+    url = f"{access_rest_api_host}/api/3.0/{contract_id}/preserved/disseminate"
+
+    new_dip_id = "test_dip_id_123"
+    new_dip_url = (
+        f"{access_rest_api_host}/api/3.0/{contract_id}/disseminated/"
+        f"{new_dip_id}"
+    )
+
+    post = requests_mock.post(
+        url,
+        status_code=202,
+        json={"status": "success", "data": {"disseminated": new_dip_url}},
+    )
+
+    returned_dip_id = client_v3.disseminate(**method_args)
+
+    assert returned_dip_id == new_dip_id
+    assert isinstance(returned_dip_id, DIPID)
+
+    assert post.called_once
+    assert post.last_request.qs == {}
+
+    assert post.last_request.json() == expected_request
+
+
+def test_disseminate_conflicting_params(
+    client_v3: RestClient,
+    requests_mock: mocker.Mocker,
+    access_rest_api_host: str,
+    contract_id: str,
+):
+    """Tests that providing both aip and aip_list parameters to
+    RestClient.disseminate does not fail silently.
+    """
+    url = f"{access_rest_api_host}/api/3.0/{contract_id}/preserved/disseminate"
+    new_dip_url = (
+        f"{access_rest_api_host}/api/3.0/{contract_id}/disseminated/"
+        "test_dip_id_123"
+    )
+    requests_mock.post(
+        url,
+        status_code=202,
+        json={"status": "success", "data": {"disseminated": new_dip_url}},
+    )
+
+    match = re.compile(r"^(?=.*\baip_list\b)(?=.*\baip\b).*$")
+
+    with pytest.raises(ValueError, match=match):
+        client_v3.disseminate(
+            aip=AIPID("test_aip_id_1"),
+            aip_list=[
+                DisseminationAIPEntry(AIPID("test_aip_id_2"), ["0", "1", "2"])
+            ],
+        )

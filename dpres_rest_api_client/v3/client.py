@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass
+from enum import Enum
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Generic, TypedDict, TypeVar
 from collections.abc import Iterator
@@ -152,6 +153,50 @@ class DIPDownloader:
                 file_.write(chunk)
 
         return resolved_path
+
+
+class AIPID(str):
+    """
+    An id of an archival information package stored in digital
+    preservation system.
+    """
+
+
+class DIPID(str):
+    """
+    An id of a dissemination information package stored in digital
+    preservation system.
+    """
+
+
+class DIPFormat(Enum):
+    """
+    Represents a file format a dissemination information package can be
+    """
+
+    ZIP = "zip"
+    TAR = "tar"
+
+
+class DisseminationIDType(Enum):
+    """
+    Represents a method files in dissemination package are chosen.
+    """
+
+    FILE = "file"
+    DIV = "div"
+
+
+@dataclass
+class DisseminationAIPEntry:
+    aip_id: AIPID
+    ids: list[str] | None = None
+
+    def to_primitives(self) -> dict[str, str | list[str]]:
+        ret: dict[str, str | list[str]] = {"aip_id": self.aip_id}
+        if self.ids is not None:
+            ret["ids"] = self.ids
+        return ret
 
 
 class RestClient(BaseClient):
@@ -412,3 +457,68 @@ class RestClient(BaseClient):
         """
         url = f"{self.base_url}/disseminated/{dip_id}"
         self.session.delete(url)
+
+    def disseminate(
+        self,
+        aip_list: list[DisseminationAIPEntry] | None = None,
+        aip: AIPID | None = None,
+        name: str | None = None,
+        catalog: str | None = None,
+        dip_format: DIPFormat | None = None,
+        only_metadata: bool | None = None,
+        id_type: DisseminationIDType | None = None,
+    ) -> DIPID:
+        """Make a dissemination information package.
+        It is required to have either of ``aip`` or ``aip_list`` param.
+
+        :param aip: ID of the AIP. Use this param if you are making a DIP
+            from single, whole AIP.
+
+        :param aip_list: A list of AIPs and their file
+            IDs. Use this param if you are making a dip from multiple AIPs or
+            want to include specific files.
+
+        :param name: The dip will be created with this name.
+        :param catalog: The version of the catalog
+        :param dip_format: The file format of the resulting DIP.
+        :param only_metadata: Make a package that only contains metadata.
+        :param id_type: The type of IDs when selecting files.
+
+
+        :return: ID of the DIP being made.
+
+        :raises ValueError: If both or neither of ``aip_list`` and ``aip`` are
+            defined.
+        """
+
+        if not ((aip_list is None) ^ (aip is None)):
+            raise ValueError(
+                "RestClient.disseminate: Exactly one of aip or aip_list needs"
+                " to be entered"
+            )
+
+        if aip is not None:
+            aip_list = [DisseminationAIPEntry(aip_id=aip)]
+
+        body: dict = {"aips": [entry.to_primitives() for entry in aip_list]}
+
+        if name is not None:
+            body["dip_name"] = name
+        if catalog is not None:
+            body["catalog"] = catalog
+        if dip_format is not None:
+            body["format"] = dip_format.value
+        if only_metadata is not None:
+            body["only_metadata"] = only_metadata
+        if id_type is not None:
+            body["id_type"] = id_type.value
+
+        url = f"{self.base_url}/preserved/disseminate"
+
+        res = self.session.post(url, json=body)
+
+        result_url = res.json()["data"]["disseminated"]
+        result_prefix = f"{self.base_url}/disseminated/"
+        id_string = result_url[len(result_prefix):]
+
+        return DIPID(id_string)
