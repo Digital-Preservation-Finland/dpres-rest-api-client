@@ -13,6 +13,7 @@ from dpres_rest_api_client.v3.client import (
     DisseminationAIPEntry,
     DisseminationIDType,
     DIPFormat,
+    TransferID,
 )
 from requests.exceptions import HTTPError
 from requests_mock import mocker
@@ -47,12 +48,12 @@ def test_upload(client_v3, uploadable_file_fx):
 def test_get_transfer(client_v3, transfer_id, transfer_exists):
     """Test that we can get specific transfer and status is readable."""
     if transfer_exists:
-        transfer = client_v3.get_transfer(transfer_id)
+        transfer = client_v3.get_transfer(TransferID(transfer_id))
         assert transfer
         assert transfer["status"]
     else:
         with pytest.raises(HTTPError):
-            client_v3.get_transfer(transfer_id)
+            client_v3.get_transfer(TransferID(transfer_id))
 
 
 @pytest.mark.usefixtures("mock_access_rest_api_v3_endpoints")
@@ -67,11 +68,11 @@ def test_get_transfer(client_v3, transfer_id, transfer_exists):
 def test_get_validation_report(client_v3, transfer_id, report_exists):
     """Test that we can get specific transfer's report to download."""
     if report_exists:
-        report = client_v3.get_validation_report(transfer_id)
+        report = client_v3.get_validation_report(TransferID(transfer_id))
         assert report
     else:
         with pytest.raises(HTTPError):
-            client_v3.get_validation_report(transfer_id)
+            client_v3.get_validation_report(TransferID(transfer_id))
 
 
 @pytest.mark.usefixtures("mock_access_rest_api_v3_endpoints")
@@ -85,7 +86,7 @@ def test_get_validation_report(client_v3, transfer_id, report_exists):
 )
 def test_delete_transfer(client_v3, transfer_id, expected_success):
     """Test that we can delete the transfer information and their reports."""
-    success = client_v3.delete_transfer(transfer_id)
+    success = client_v3.delete_transfer(TransferID(transfer_id))
     assert success is expected_success
 
 
@@ -128,6 +129,12 @@ def test_list_transfers(client_v3, status):
         assert all(
             entry["status"] == status for entry in search_result.results
         )
+        
+    # Test that the results contain correct typing
+    assert all(
+        isinstance(entry["transfer_id"], TransferID)
+        for entry in search_result.results
+    )
 
 @pytest.mark.parametrize(
     "qs",
@@ -178,6 +185,12 @@ def test_list_dips(requests_mock, client_v3, qs, access_rest_api_host, contract_
         assert query_string["complete"][0] == str(qs["complete"]).lower()
         assert query_string["page"][0] == qs["page"]
         assert query_string["limit"][0] == qs["limit"]
+
+    # Test that the results contain correct typing
+    assert all(
+        isinstance(entry["dip_id"], DIPID)
+        for entry in search_result.results
+    )
 
 
 def _create_search_result(results, next=None, previous=None):
@@ -310,6 +323,12 @@ def test_search(
     assert search_result.has_next_page == expected.has_next_page
     assert search_result.page == expected.page
 
+    # Test that the results contain correct typing
+    assert all(
+        isinstance(entry["aip_id"], AIPID)
+        for entry in search_result.results
+    )
+
 
 def test_statistics_success(
     client_v3: RestClient,
@@ -426,7 +445,7 @@ def test_download_dip(
         headers={"Content-Disposition": f"attachment; filename={filename}"},
     )
 
-    downloader = client_v3.get_dip_downloader(dip_id)
+    downloader = client_v3.get_dip_downloader(DIPID(dip_id))
     downloader.save(tmp_path / downloader.suggested_filename)
 
     expected_path = tmp_path / filename
@@ -459,7 +478,7 @@ def test_stream_dip(
         headers={"Content-Disposition": "attachment; filename=testtar.tar"},
     )
 
-    downloader = client_v3.get_dip_downloader(dip_id)
+    downloader = client_v3.get_dip_downloader(DIPID(dip_id))
     resulting_bytes_iterator = downloader.download_iter
 
     assert data == b"".join(resulting_bytes_iterator)
@@ -484,11 +503,11 @@ def test_delete_dip(
     delete = requests_mock.delete(url, status_code=expected_status_code)
 
     if expected_status_code == 204:
-        client_v3.delete_dip(dip_id)
+        client_v3.delete_dip(DIPID(dip_id))
         assert delete.called_once
     else:
         with pytest.raises(HTTPError) as e:
-            client_v3.delete_dip(dip_id)
+            client_v3.delete_dip(DIPID(dip_id))
         assert delete.called_once
         assert e.value.response.status_code == expected_status_code
 

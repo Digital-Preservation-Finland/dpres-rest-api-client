@@ -36,13 +36,37 @@ class SearchResultV3(Generic[Result]):
     limit: int
 
     @classmethod
-    def from_data(cls, data: dict, page: int, limit: int) -> SearchResultV3:
+    def from_data(
+        cls,
+        data: dict,
+        page: int,
+        limit: int,
+        entry_type: type,
+    ) -> SearchResultV3:
+
+        results_ = [
+            cls._cast_results(entry, entry_type) for entry in data["results"]
+        ]
+
         return cls(
-            results=data["results"],
+            results=results_,
             has_next_page=bool(data["links"].get("next")),
             page=page,
             limit=limit
         )
+
+    @staticmethod
+    def _cast_results(
+        entry: AIPResult | TransferResult | DIPResult, entry_type: type
+    ):
+        if entry_type == AIPResult:
+            entry["aip_id"] = AIPID(entry["aip_id"])
+        elif entry_type == TransferResult:
+            entry["transfer_id"] = TransferID(entry["transfer_id"])
+        elif entry_type == DIPResult:
+            entry["dip_id"] = DIPID(entry["dip_id"])
+
+        return entry
 
 
 class AIPResult(TypedDict):
@@ -50,7 +74,8 @@ class AIPResult(TypedDict):
     Individual result entry returned by :meth:`RestClient.search` and
     /v3/<contract>/search
     """
-    aip_id: str
+
+    aip_id: AIPID
     content_id: str | None
     createdate: str
     lastmoddate: str | None
@@ -63,7 +88,8 @@ class TransferResult(TypedDict):
     Individual result entry returned by :meth:`RestClient.list_transfers` and
     /v3/<contract>/transfers
     """
-    transfer_id: str
+
+    transfer_id: TransferID
     filename: str
     status: str
     transfer: str | None
@@ -77,7 +103,8 @@ class DIPResult(TypedDict):
     Individual result entry returned by :meth:`RestClient.list_dips` and
     /v3/<contract>/disseminated
     """
-    dip_id: str
+
+    dip_id: DIPID
     complete: bool
     disseminated: str
     actions: dict
@@ -89,7 +116,8 @@ class DIPInfoResult(TypedDict):
     Result returned from :meth:`RestClient.get_dip_info` and
     /v3/<contract>/disseminated/<dip-id>
     """
-    dip_id: str
+
+    dip_id: DIPID
     complete: bool
     actions: dict
     dip: dict
@@ -166,6 +194,12 @@ class DIPID(str):
     """
     An id of a dissemination information package stored in digital
     preservation system.
+    """
+
+
+class TransferID(str):
+    """
+    An id of a transfer stored in digital preservation system.
     """
 
 
@@ -284,7 +318,7 @@ class RestClient(BaseClient):
         uploader = self.tus_client.uploader(file_path=file_path, **kwargs)
         return uploader
 
-    def get_transfer(self, transfer_id):
+    def get_transfer(self, transfer_id: TransferID):
         """Get transfer information from Digital Preservation Service.
 
         :param transfer_id: Transfer ID to fetch the information for.
@@ -295,7 +329,9 @@ class RestClient(BaseClient):
         response = self.session.get(url)
         return response.json()["data"]
 
-    def get_validation_report(self, transfer_id, report_type="xml"):
+    def get_validation_report(
+        self, transfer_id: TransferID, report_type: str = "xml"
+    ) -> bytes:
         """Get validation report for given transfer.
 
         :param transfer_id: Transfer ID to fetch the report for.
@@ -309,7 +345,7 @@ class RestClient(BaseClient):
         response = self.session.get(url, params=params)
         return response.content
 
-    def delete_transfer(self, transfer_id):
+    def delete_transfer(self, transfer_id: TransferID) -> bool:
         """Delete the given transfer information.
 
         This will make it so that future call to get transfer
@@ -348,7 +384,7 @@ class RestClient(BaseClient):
         data = response.json()["data"]
 
         return SearchResultV3[TransferResult].from_data(
-            data=data, page=page, limit=limit
+            data=data, page=page, limit=limit, entry_type=TransferResult
         )
 
     def search(
@@ -375,7 +411,7 @@ class RestClient(BaseClient):
         data = response.json()["data"]
 
         return SearchResultV3[AIPResult].from_data(
-            data=data, page=page, limit=limit
+            data=data, page=page, limit=limit, entry_type=AIPResult
         )
 
     def list_dips(
@@ -404,7 +440,7 @@ class RestClient(BaseClient):
         data = response.json()["data"]
 
         return SearchResultV3[DIPResult].from_data(
-            data=data, page=page, limit=limit
+            data=data, page=page, limit=limit, entry_type=DIPResult
         )
 
     def get_statistics(self) -> StatisticsResult:
@@ -414,7 +450,7 @@ class RestClient(BaseClient):
         data = response.json()["data"]
         return StatisticsResult(**data)
 
-    def get_dip_info(self, dip_id: str) -> DIPInfoResult:
+    def get_dip_info(self, dip_id: DIPID) -> DIPInfoResult:
         """Get dissemination information from Digital Preservation Service.
 
         :param dip_id: The ID of the DIP
@@ -425,7 +461,7 @@ class RestClient(BaseClient):
         response = self.session.get(url).json()["data"]
         return response
 
-    def get_dip_download_request(self, dip_id: str) -> PreparedRequest:
+    def get_dip_download_request(self, dip_id: DIPID) -> PreparedRequest:
         """
         Gets a request containing all necessary information for fetching a DIP.
         :param dip_id: ID of the dip to be downloaded
@@ -434,7 +470,7 @@ class RestClient(BaseClient):
         url = f"{self.base_url}/disseminated/{dip_id}/download"
         return self.session.prepare_request(Request("GET", f"{url}"))
 
-    def get_dip_downloader(self, dip_id: str) -> DIPDownloader:
+    def get_dip_downloader(self, dip_id: DIPID) -> DIPDownloader:
         """
         Gets a downloader for a DIP
         :param dip_id: ID of the dip to be downloaded
@@ -449,7 +485,7 @@ class RestClient(BaseClient):
         response = self.session.send(request, **settings)
         return DIPDownloader(response)
 
-    def delete_dip(self, dip_id: str) -> None:
+    def delete_dip(self, dip_id: DIPID) -> None:
         """Delete dissemination information package.
 
         :param dip_id: ID of the DIP to delete.
