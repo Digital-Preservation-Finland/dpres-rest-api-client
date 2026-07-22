@@ -67,12 +67,14 @@ def test_search(cli_runner, access_rest_api_host, requests_mock):
                         "content_id": None,
                         "createdate": "2021-08-01T08:59:05Z",
                         "lastmoddate": None,
+                        "location": "loc",
                     },
                     {
                         "aip_id": "eggs",
                         "content_id": "eggs-contentid",
                         "createdate": "2021-08-02T09:01:58Z",
                         "lastmoddate": "2021-08-03T09:01:58Z",
+                        "location": "loc",
                     },
                 ],
                 "links": {"self": "/"},
@@ -127,6 +129,7 @@ def test_search_query(cli_runner, access_rest_api_host, requests_mock):
                         "content_id": None,
                         "createdate": "2021-08-02T09:01:58Z",
                         "lastmoddate": "2021-08-03T09:01:58Z",
+                        "location": " loc",
                     }
                 ],
                 "links": {"self": "/"},

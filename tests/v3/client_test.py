@@ -14,6 +14,12 @@ from dpres_rest_api_client.v3.client import (
     DisseminationIDType,
     DIPFormat,
     TransferID,
+    StatisticsResult,
+    _CapacityStats,
+    _KeyFiguresStats,
+    AIPResult,
+    TransferResult,
+    DIPResult,
 )
 from requests.exceptions import HTTPError
 from requests_mock import mocker
@@ -120,19 +126,20 @@ def test_list_transfers(client_v3, status):
 
     if status is None:
         # No status filtering, transfers of every status are returned
-        found_statuses = {entry["status"] for entry in search_result.results}
+        found_statuses = {entry.status for entry in search_result.results}
         assert found_statuses == {
             "accepted", "in_progress", "rejected", "uploading"
         }
     else:
         # Status filtering active, only transfers of one status returned
-        assert all(
-            entry["status"] == status for entry in search_result.results
-        )
-        
+        assert all(entry.status == status for entry in search_result.results)
+
     # Test that the results contain correct typing
     assert all(
-        isinstance(entry["transfer_id"], TransferID)
+        isinstance(entry, TransferResult) for entry in search_result.results
+    )
+    assert all(
+        isinstance(entry.transfer_id, TransferID)
         for entry in search_result.results
     )
 
@@ -149,7 +156,7 @@ def test_list_dips(requests_mock, client_v3, qs, access_rest_api_host, contract_
 
     complete_status = True if qs is None else qs["complete"]
     url = f"{access_rest_api_host}/api/3.0/{contract_id}/disseminated"
-    results = [
+    mock_results = [
         {
             "dip_id": f"dip_id_{i}",
             "complete": complete_status,
@@ -159,12 +166,24 @@ def test_list_dips(requests_mock, client_v3, qs, access_rest_api_host, contract_
         }
         for i in range(5)
     ]
+
+    expected_return = [
+        DIPResult(
+            DIPID(f"dip_id_{i}"),
+            complete_status,
+            url,
+            {"download": f"{url}/download"} if complete_status else {},
+            "2024-11-15T10_10_00Z",
+        )
+        for i in range(5)
+    ]
+
     access_rest_api_mock = requests_mock.get(
         url,
         json={
             "data": {
                 "links": {"previous": "prev_value", "next": "next_value"},
-                "results": results,
+                "results": mock_results,
             }
         },
     )
@@ -172,7 +191,7 @@ def test_list_dips(requests_mock, client_v3, qs, access_rest_api_host, contract_
     search_result = client_v3.list_dips() if qs is None else client_v3.list_dips(**qs)
 
     # Client does not change the format of the results
-    assert search_result.results == results
+    assert search_result.results == expected_return
 
     query_string = access_rest_api_mock.last_request.qs
     if qs is None:
@@ -187,9 +206,9 @@ def test_list_dips(requests_mock, client_v3, qs, access_rest_api_host, contract_
         assert query_string["limit"][0] == qs["limit"]
 
     # Test that the results contain correct typing
+    assert all(isinstance(entry, DIPResult) for entry in search_result.results)
     assert all(
-        isinstance(entry["dip_id"], DIPID)
-        for entry in search_result.results
+        isinstance(entry.dip_id, DIPID) for entry in search_result.results
     )
 
 
@@ -214,18 +233,22 @@ def _create_search_result(results, next=None, previous=None):
             None, None,
             SearchResultV3(
                 results=[
-                    {
-                        "aip_id": "aip_id_1",
-                        "content_id": "content_id_1",
-                        "createdate": "2026-01-01T12:00:00Z",
-                        "lastmoddate": None,
-                    },
-                    {
-                        "aip_id": "aip_id_1_v2",
-                        "content_id": None,
-                        "createdate": "2026-01-01T12:00:00Z",
-                        "lastmoddate": "2026-01-02T12:00:00Z",
-                    }
+                    AIPResult(
+                        aip_id=AIPID("aip_id_1"),
+                        content_id="content_id_1",
+                        createdate="2026-01-01T12:00:00Z",
+                        lastmoddate=None,
+                        location="loc",
+                        match=None,
+                    ),
+                    AIPResult(
+                        aip_id=AIPID("aip_id_1_v2"),
+                        content_id=None,
+                        createdate="2026-01-01T12:00:00Z",
+                        lastmoddate="2026-01-02T12:00:00Z",
+                        location="loc",
+                        match=None,
+                    ),
                 ],
                 has_next_page=True,
                 page=1,
@@ -236,12 +259,14 @@ def _create_search_result(results, next=None, previous=None):
             2, None,
             SearchResultV3(
                 results=[
-                    {
-                        "aip_id": "aip_id_2",
-                        "content_id": "content_id_2",
-                        "createdate": "2026-02-01T12:00:00Z",
-                        "lastmoddate": None,
-                    }
+                    AIPResult(
+                        aip_id=AIPID("aip_id_2"),
+                        content_id="content_id_2",
+                        createdate="2026-02-01T12:00:00Z",
+                        lastmoddate=None,
+                        location="loc",
+                        match=None,
+                    )
                 ],
                 has_next_page=False,
                 page=2,
@@ -252,12 +277,14 @@ def _create_search_result(results, next=None, previous=None):
             None, "file_id:aip_id_3",
             SearchResultV3(
                 results=[
-                    {
-                        "aip_id": "aip_id_3",
-                        "content_id": "content_id_3",
-                        "createdate": "2026-02-01T12:00:00Z",
-                        "lastmoddate": None,
-                    }
+                    AIPResult(
+                        aip_id=AIPID("aip_id_3"),
+                        content_id="content_id_3",
+                        createdate="2026-02-01T12:00:00Z",
+                        lastmoddate=None,
+                        location="loc",
+                        match=None,
+                    )
                 ],
                 has_next_page=False,
                 page=1,
@@ -272,43 +299,55 @@ def test_search(
     """Test that correct results are returned for each set of parameters"""
     requests_mock.get(
         f"{access_rest_api_host}/api/3.0/{contract_id}/search",
-        json=_create_search_result([
-            {
-                "aip_id": "aip_id_1",
-                "content_id": "content_id_1",
-                "createdate": "2026-01-01T12:00:00Z",
-                "lastmoddate": None,
-            },
-            {
-                "aip_id": "aip_id_1_v2",
-                "content_id": None,
-                "createdate": "2026-01-01T12:00:00Z",
-                "lastmoddate": "2026-01-02T12:00:00Z",
-            }
-        ], next="?page=2"),
+        json=_create_search_result(
+            [
+                {
+                    "aip_id": "aip_id_1",
+                    "content_id": "content_id_1",
+                    "createdate": "2026-01-01T12:00:00Z",
+                    "lastmoddate": None,
+                    "location": "loc",
+                },
+                {
+                    "aip_id": "aip_id_1_v2",
+                    "content_id": None,
+                    "createdate": "2026-01-01T12:00:00Z",
+                    "lastmoddate": "2026-01-02T12:00:00Z",
+                    "location": "loc",
+                },
+            ],
+            next="?page=2",
+        ),
     )
     requests_mock.get(
         f"{access_rest_api_host}/api/3.0/{contract_id}/search?page=2",
-        json=_create_search_result([
-            {
-                "aip_id": "aip_id_2",
-                "content_id": "content_id_2",
-                "createdate": "2026-02-01T12:00:00Z",
-                "lastmoddate": None,
-            }
-        ], previous="?page=1")
+        json=_create_search_result(
+            [
+                {
+                    "aip_id": "aip_id_2",
+                    "content_id": "content_id_2",
+                    "createdate": "2026-02-01T12:00:00Z",
+                    "lastmoddate": None,
+                    "location": "loc",
+                }
+            ],
+            previous="?page=1",
+        ),
     )
     requests_mock.get(
         f"{access_rest_api_host}/api/3.0/{contract_id}/search"
         f"?{urlencode({'q': 'file_id:aip_id_3'})}",
-        json=_create_search_result([
-            {
-                "aip_id": "aip_id_3",
-                "content_id": "content_id_3",
-                "createdate": "2026-02-01T12:00:00Z",
-                "lastmoddate": None,
-            }
-        ])
+        json=_create_search_result(
+            [
+                {
+                    "aip_id": "aip_id_3",
+                    "content_id": "content_id_3",
+                    "createdate": "2026-02-01T12:00:00Z",
+                    "lastmoddate": None,
+                    "location": "loc",
+                }
+            ]
+        ),
     )
 
     params = {}
@@ -325,8 +364,7 @@ def test_search(
 
     # Test that the results contain correct typing
     assert all(
-        isinstance(entry["aip_id"], AIPID)
-        for entry in search_result.results
+        isinstance(entry.aip_id, AIPID) for entry in search_result.results
     )
 
 
@@ -354,11 +392,16 @@ def test_statistics_success(
         "status": "success",
     }
 
+    expected = StatisticsResult(
+        _CapacityStats(used=100, available=900, total=1000),
+        _KeyFiguresStats(sips_accepted=42, objects_preserved=1337),
+    )
+
     mock = requests_mock.get(url, json=api_response, status_code=200)
 
     result = client_v3.get_statistics()
 
-    assert result == api_response["data"]
+    assert result == expected
     assert mock.called
     assert mock.call_count == 1
 
@@ -394,12 +437,12 @@ def test_get_dip_info(
 
     dip_info = client_v3.get_dip_info(dip_id)
 
-    assert dip_info["dip_id"] == dip_id
-    assert dip_info["complete"] == complete
-    assert dip_info["actions"] == actions
-    assert dip_info["dip"] == dip
-    assert dip_info["timestamp"] == timestamp
-    assert dip_info["dip"]["dip_name"] == "testname"
+    assert dip_info.dip_id == dip_id
+    assert dip_info.complete == complete
+    assert dip_info.actions == actions
+    assert dip_info.dip == dip
+    assert dip_info.timestamp == timestamp
+    assert dip_info.dip["dip_name"] == "testname"
 
 
 def test_download_dip_request(

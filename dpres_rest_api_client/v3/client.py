@@ -7,7 +7,7 @@ import os
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Generic, TypedDict, TypeVar
+from typing import TYPE_CHECKING, Any, Generic, TypeVar
 from collections.abc import Iterator
 
 from requests import Response, Request, PreparedRequest
@@ -57,19 +57,39 @@ class SearchResultV3(Generic[Result]):
 
     @staticmethod
     def _cast_results(
-        entry: AIPResult | TransferResult | DIPResult, entry_type: type
-    ):
+        entry: dict, entry_type: type
+    ) -> None | AIPResult | TransferResult | DIPResult:
         if entry_type == AIPResult:
-            entry["aip_id"] = AIPID(entry["aip_id"])
+            return AIPResult(
+                AIPID(entry["aip_id"]),
+                entry.get("content_id"),
+                entry["createdate"],
+                entry.get("lastmoddate"),
+                entry["location"],
+                entry.get("match"),
+            )
         elif entry_type == TransferResult:
-            entry["transfer_id"] = TransferID(entry["transfer_id"])
+            return TransferResult(
+                TransferID(entry["transfer_id"]),
+                entry["filename"],
+                entry["status"],
+                entry.get("transfer"),
+                entry["actions"],
+                entry["sip"],
+                entry["timestamp"],
+            )
         elif entry_type == DIPResult:
-            entry["dip_id"] = DIPID(entry["dip_id"])
+            return DIPResult(
+                DIPID(entry["dip_id"]),
+                entry["complete"],
+                entry["disseminated"],
+                entry["actions"],
+                entry["timestamp"],
+            )
 
-        return entry
 
-
-class AIPResult(TypedDict):
+@dataclass
+class AIPResult:
     """
     Individual result entry returned by :meth:`RestClient.search` and
     /v3/<contract>/search
@@ -83,7 +103,8 @@ class AIPResult(TypedDict):
     match: dict | None
 
 
-class TransferResult(TypedDict):
+@dataclass
+class TransferResult:
     """
     Individual result entry returned by :meth:`RestClient.list_transfers` and
     /v3/<contract>/transfers
@@ -98,7 +119,8 @@ class TransferResult(TypedDict):
     timestamp: str
 
 
-class DIPResult(TypedDict):
+@dataclass
+class DIPResult:
     """
     Individual result entry returned by :meth:`RestClient.list_dips` and
     /v3/<contract>/disseminated
@@ -111,7 +133,8 @@ class DIPResult(TypedDict):
     timestamp: str
 
 
-class DIPInfoResult(TypedDict):
+@dataclass
+class DIPInfoResult:
     """
     Result returned from :meth:`RestClient.get_dip_info` and
     /v3/<contract>/disseminated/<dip-id>
@@ -124,7 +147,8 @@ class DIPInfoResult(TypedDict):
     timestamp: str
 
 
-class StatisticsResult(TypedDict):
+@dataclass
+class StatisticsResult:
     """
     Result returned by :meth:`RestClient.get_statistics` and
     /v3/<contract>/statistics/overview
@@ -134,13 +158,15 @@ class StatisticsResult(TypedDict):
     key_figures: _KeyFiguresStats
 
 
-class _CapacityStats(TypedDict):
+@dataclass
+class _CapacityStats:
     used: int
     available: int
     total: int
 
 
-class _KeyFiguresStats(TypedDict):
+@dataclass
+class _KeyFiguresStats:
     sips_accepted: int
     objects_preserved: int
 
@@ -448,7 +474,10 @@ class RestClient(BaseClient):
         url = f"{self.base_url}/statistics/overview"
         response = self.session.get(url)
         data = response.json()["data"]
-        return StatisticsResult(**data)
+        return StatisticsResult(
+            _CapacityStats(**data["capacity"]),
+            _KeyFiguresStats(**data["key_figures"]),
+        )
 
     def get_dip_info(self, dip_id: DIPID) -> DIPInfoResult:
         """Get dissemination information from Digital Preservation Service.
@@ -459,7 +488,7 @@ class RestClient(BaseClient):
         """
         url = f"{self.base_url}/disseminated/{dip_id}"
         response = self.session.get(url).json()["data"]
-        return response
+        return DIPInfoResult(**response)
 
     def get_dip_download_request(self, dip_id: DIPID) -> PreparedRequest:
         """
