@@ -12,10 +12,17 @@ Unreleased
 
 Added
 ~~~~~
-- Add ``RestClient.get_dip_info`` method for getting information about individual dissemination
-- Add ``RestClient.get_dip_download_request`` and ``RestClient.get_dip_downloader`` methods, and ``DIPDownloader`` class for downloading DIPs.
-- Add ``RestClient.delete_dip`` method for deleting dips.
-- Add ``RestClient.disseminate`` method for making new DIPs.
+- Add ``get_statistics`` to v3 rest api client.
+- Add ``RestClient.get_dip_info`` method for getting information about individual dissemination to v3 rest api client
+- Add ``RestClient.get_dip_download_request`` and ``RestClient.get_dip_downloader`` methods, and ``DIPDownloader`` class for downloading DIPs to v3 rest api client.
+- Add ``RestClient.delete_dip`` method for deleting dips to v3 rest api client.
+- Add ``RestClient.disseminate`` method for making new DIPs to v3 rest api client.
+- Add separate classes for transfer ID, AIP ID and DIP ID to v3 rest api client.
+
+Changed
+~~~~~~~
+- Updated ID parameters and return values of v3 client methods to be distinct classes transfer ID, AIP ID and DIP ID.
+- Changed return types of some of v3 client methods to be dataclasses instead of typed dicts or raw dicts.
 
 
 `2.0.0`_ - 2026-04-10
