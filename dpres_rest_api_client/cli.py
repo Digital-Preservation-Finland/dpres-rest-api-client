@@ -404,12 +404,12 @@ def get_transfer_info(ctx, transfer_id):
     except HTTPError:
         raise ClickException(f"No transfer found for '{transfer_id}'")
 
-    click.echo(f'Transfer ID: {data["transfer_id"]}')
-    if data["sip"]:
-        click.echo(f'SIP ID: {data["sip"]["sip_id"]}')
-    click.echo(f'Filename: {data["filename"]}')
-    click.echo(f'Status: {data["status"]}')
-    click.echo(f'Timestamp: {data["timestamp"]}')
+    click.echo(f"Transfer ID: {data.transfer_id}")
+    if data.sip:
+        click.echo(f"SIP ID: {data.sip['sip_id']}")
+    click.echo(f"Filename: {data.filename}")
+    click.echo(f"Status: {data.status}")
+    click.echo(f"Timestamp: {data.timestamp}")
 
 
 # TODO: Provide "auto" file-type as choice option so that it'd make
@@ -478,7 +478,7 @@ def _poll_until_transfer_processed(client, transfer_id):
     # need to poll it at all.
     try:
         data = client.get_transfer(transfer_id=transfer_id)
-        current_status = data["status"]
+        current_status = data.status
     except HTTPError:
         click.echo("")
         raise ClickException(f"No transfer found for '{transfer_id}'")

@@ -56,7 +56,7 @@ def test_get_transfer(client_v3, transfer_id, transfer_exists):
     if transfer_exists:
         transfer = client_v3.get_transfer(TransferID(transfer_id))
         assert transfer
-        assert transfer["status"]
+        assert transfer.status
     else:
         with pytest.raises(HTTPError):
             client_v3.get_transfer(TransferID(transfer_id))

@@ -259,6 +259,16 @@ class DisseminationAIPEntry:
         return ret
 
 
+@dataclass
+class TransferInfoResult:
+    transfer_id: TransferID
+    filename: str
+    status: str
+    actions: dict
+    sip: dict
+    timestamp: str
+
+
 class RestClient(BaseClient):
     """
     Client for using the Digital Preservation Service REST API.
@@ -344,7 +354,7 @@ class RestClient(BaseClient):
         uploader = self.tus_client.uploader(file_path=file_path, **kwargs)
         return uploader
 
-    def get_transfer(self, transfer_id: TransferID):
+    def get_transfer(self, transfer_id: TransferID) -> TransferInfoResult:
         """Get transfer information from Digital Preservation Service.
 
         :param transfer_id: Transfer ID to fetch the information for.
@@ -353,7 +363,7 @@ class RestClient(BaseClient):
         """
         url = f"{self.base_url}/transfers/{transfer_id}"
         response = self.session.get(url)
-        return response.json()["data"]
+        return TransferInfoResult(**response.json()["data"])
 
     def get_validation_report(
         self, transfer_id: TransferID, report_type: str = "xml"
