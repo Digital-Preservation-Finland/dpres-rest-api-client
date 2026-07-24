@@ -261,6 +261,10 @@ class DisseminationAIPEntry:
 
 @dataclass
 class TransferInfoResult:
+    """
+    Result returned from :meth:`RestClient.get_transfer` and
+    /v3/<contract>/transfers/<transfer_id>
+    """
     transfer_id: TransferID
     filename: str
     status: str
@@ -358,7 +362,7 @@ class RestClient(BaseClient):
         """Get transfer information from Digital Preservation Service.
 
         :param transfer_id: Transfer ID to fetch the information for.
-        :return: JSON data from successful response.
+        :return: Data from successful response.
         :raises HTTPError: When response code is within 400 - 599 range.
         """
         url = f"{self.base_url}/transfers/{transfer_id}"
@@ -409,7 +413,7 @@ class RestClient(BaseClient):
         :param status: Filter the result down to given status in string.
         :param page: Which page number to view in integer.
         :param limit: Limit to how many results in integer.
-        :return: JSON data from successful response.
+        :return: SearchResuls of retrieved transfers.
         :raises HTTPError: When response code is within 400 - 599 range.
         """
         url = f"{self.base_url}/transfers"
@@ -437,6 +441,7 @@ class RestClient(BaseClient):
         :param limit: Maximum amount of search results per page
         :param query: Search query based on Solr's dialect of the
                       Lucene query syntax.
+        :return: SearchResult of matching AIPs.
         """
         params = {"page": page, "limit": limit}
 
@@ -465,6 +470,7 @@ class RestClient(BaseClient):
         all DIPs regardless of the completion status.
         :param int page: Which response page to view as an integer.
         :param int limit: Maximum number of DIPs as an integer.
+        :return: SearchResult of retrieved dissemination packages.
         :raises HTTPError: When response code is wihin 400 - 599 range.
         """
         url = f"{self.base_url}/disseminated"
@@ -493,7 +499,7 @@ class RestClient(BaseClient):
         """Get dissemination information from Digital Preservation Service.
 
         :param dip_id: The ID of the DIP
-        :return: JSON data from successful response.
+        :return: Data from successful response.
         :raises HTTPError: When response code is within 400 - 599 range.
         """
         url = f"{self.base_url}/disseminated/{dip_id}"
