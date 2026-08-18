@@ -114,6 +114,12 @@ run
 
 See ``dpres-client dip download --help`` for the usage of extra parameters.
 
+Caching
+    Information about dissemination packages is cached at ``<XDG_CACHE_HOME>/dpres-rest-api-client/dip_cache.json``
+    (``~/.cache/dpres-rest-api-client/dip_cache.json`` by default). With this cache, the download command can reuse
+    previously requested dissemination packages. The cache can be emptied by deleting the file manually.
+
+
 To delete a DIP package, copy the DIP ID from the previous
 ``dpres-client search --query pkg_type:DIP`` command and then run
 

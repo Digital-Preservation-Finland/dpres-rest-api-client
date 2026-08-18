@@ -23,7 +23,7 @@ Changed
 ~~~~~~~
 - Updated ID parameters and return values of v3 client methods to be distinct classes transfer ID, AIP ID and DIP ID.
 - Changed return types of some of v3 client methods to be dataclasses instead of typed dicts or raw dicts.
-
+- DIP requests made with download command are now cached, so that they are not lost and can be resumed with the same command while the server is preparing the package.
 
 `2.0.0`_ - 2026-04-10
 ---------------------

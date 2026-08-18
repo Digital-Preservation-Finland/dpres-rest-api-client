@@ -11,16 +11,26 @@ from dpres_rest_api_client.v2.client import AccessClient as ClientV2
 from dpres_rest_api_client.v3.client import RestClient as ClientV3
 
 @pytest.fixture(scope="function")
-def home_config_path(tmp_path, monkeypatch):
+def home_config_path(home_dir):
     """
     Path to the user's configuration file in a mocked home directory
     """
-    home_dir = tmp_path / "home" / "testuser"
-    monkeypatch.setenv("HOME", str(home_dir))
 
     config_dir = home_dir / ".config" / "dpres_rest_api_client"
     config_dir.mkdir(parents=True)
     return config_dir / "config.conf"
+
+
+@pytest.fixture(scope="function")
+def home_dir(tmp_path, monkeypatch):
+    dir = tmp_path / "home" / "testuser"
+    monkeypatch.setenv("HOME", str(dir))
+    return dir
+
+
+@pytest.fixture(scope="function")
+def dissemination_cache_path(home_dir):
+    return home_dir / ".cache" / "dpres-rest-api-client" / "dip_cache.json"
 
 
 @pytest.fixture(scope="function", autouse=True)

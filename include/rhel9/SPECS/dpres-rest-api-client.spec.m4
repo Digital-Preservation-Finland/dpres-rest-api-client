@@ -26,6 +26,7 @@ BuildRequires:  %{py3_dist setuptools-scm}
 BuildRequires:  %{py3_dist wheel}
 BuildRequires:  %{py3_dist pytest}
 BuildRequires:  %{py3_dist requests-mock}
+BuildRequires:  %{py3_dist pytest-freezer}
 
 %py_provides python3-dpres-rest-api-client
 

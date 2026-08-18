@@ -14,6 +14,7 @@ import tabulate
 from click.exceptions import ClickException
 from requests.exceptions import HTTPError
 
+from dpres_rest_api_client._dissemination_cache import DisseminationCache
 from dpres_rest_api_client.base import get_poll_interval_iter
 from dpres_rest_api_client.config import (
     write_default_config,
@@ -125,20 +126,13 @@ def download(ctx, path, archive_format, catalog, delete, aip_id):
     else:
         path = Path(path)
 
-    # TODO: We could cache the DIP creation request with a reasonable
-    # time-to-live (eg. one day?)
-    #
-    # This means that if the user runs this command with certain parameters,
-    # starts polling for the DIP but closes the application before the download
-    # is finished, the previous polling URL will be used on next launch
-    # if the exact same parameters are used.
-    # This prevents the creation of new redundant DIP on the server-side.
-    # (KDKPAS-3482)
+    dip_cache = DisseminationCache()
+    dip_cache.gc()
 
-    dip_request = client.create_dip_request(
-        aip_id=aip_id, archive_format=archive_format,
-        catalog=catalog
+    dip_request = dip_cache.get_request(
+        client, path, archive_format, catalog, delete, aip_id
     )
+    click.echo(f"Using cache {dip_cache.cache_path}")
 
     # Start polling until the disseminated DIP is ready for download
     _download_poll_until_ready(dip_request)
@@ -152,6 +146,8 @@ def download(ctx, path, archive_format, catalog, delete, aip_id):
         click.echo("Proceeding to delete DIP from the service...")
 
         dip_request.delete()
+
+        dip_cache.remove(aip_id, archive_format, catalog, delete, path)
 
     click.echo("Done!")
 

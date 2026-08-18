@@ -8,3 +8,4 @@ tuspy
 pytest
 pytest-cov
 requests_mock
+pytest-freezer
