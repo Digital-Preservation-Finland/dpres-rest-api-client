@@ -18,6 +18,7 @@ Added
 - Add ``RestClient.delete_dip`` method for deleting dips to v3 rest api client.
 - Add ``RestClient.disseminate`` method for making new DIPs to v3 rest api client.
 - Add separate classes for transfer ID, AIP ID and DIP ID to v3 rest api client.
+- Add ``list_aip_files`` method for getting file information from AIP to v3 rest api client.
 
 Changed
 ~~~~~~~

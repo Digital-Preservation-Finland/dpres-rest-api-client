@@ -486,3 +486,54 @@ def mock_access_rest_api_v3_list_endpoint(access_rest_api_host, contract_id):
             status_code=200,
         )
         yield
+
+
+@pytest.fixture(scope="function")
+def mock_access_rest_api_v3_aip_files(access_rest_api_host, contract_id):
+    """
+    Mock access-rest-api V3 API response for listing files in an AIP. The
+    responses are paged JSON results.
+    """
+
+    aipid = "testaipid"
+    files = []
+    for i in range(5):
+        files.append(
+            {"filepath": f"file:///data/testfile_{i}.mp3", "file_id": f"id_{i}"}
+        )
+
+    def aip_list_response(request, context):
+        limit = request.qs.get("limit", [""])[0]
+        page = request.qs.get("page", [""])[0]
+        if not limit:
+            limit = "20"
+        if not page:
+            page = "1"
+        start_index = int(limit) * (int(page) - 1)
+        end_index = int(limit) * (int(page))
+
+        files_in_range = files[start_index:end_index]
+
+        links = {
+            "self": "self",
+            "previous": "previous" if start_index > 0 else "",
+            "next": "next" if end_index < len(files) else "",
+        }
+
+        obj = {
+            "status": "success",
+            "data": {
+                "results": files_in_range,
+                "links": links,
+            },
+        }
+
+        return json.dumps(obj)
+
+    with requests_mock.Mocker() as mock:
+        mock.get(
+            f"{access_rest_api_host}/api/3.0/{contract_id}/preserved/{aipid}/files",
+            text=aip_list_response,
+            status_code=200,
+        )
+        yield

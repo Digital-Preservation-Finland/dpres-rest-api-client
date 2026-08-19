@@ -58,7 +58,7 @@ class SearchResultV3(Generic[Result]):
     @staticmethod
     def _cast_results(
         entry: dict, entry_type: type
-    ) -> None | AIPResult | TransferResult | DIPResult:
+    ) -> None | AIPResult | TransferResult | DIPResult | AIPFileListEntry:
         if entry_type == AIPResult:
             return AIPResult(
                 AIPID(entry["aip_id"]),
@@ -85,6 +85,11 @@ class SearchResultV3(Generic[Result]):
                 entry["disseminated"],
                 entry["actions"],
                 entry["timestamp"],
+            )
+        elif entry_type == AIPFileListEntry:
+            return AIPFileListEntry(
+                entry["filepath"],
+                entry["file_id"],
             )
 
 
@@ -131,6 +136,16 @@ class DIPResult:
     disseminated: str
     actions: dict
     timestamp: str
+
+
+@dataclass
+class AIPFileListEntry:
+    """
+    Individual result entry returned by :meth:`RestClient.list_aip_files` and
+    /v3/<contract>/preserved/<aip>/files
+    """
+    filepath: str
+    file_id: str
 
 
 @dataclass
@@ -603,3 +618,26 @@ class RestClient(BaseClient):
         id_string = result_url[len(result_prefix):]
 
         return DIPID(id_string)
+
+    def list_aip_files(
+        self, aip: AIPID, page: int = 1, limit: int = 20
+    ) -> SearchResultV3[AIPFileListEntry]:
+        """
+        Lists files inside one specific AIP. This method has paging
+        functionality.
+
+        :param aip: The id of the AIP in question
+        :param page: The number of the page retrieved as integer.
+        :param limit: The maximum number of the entries in paging as integer.
+        :return: Search result of the retrieved file entries, which contain
+            information about file paths and their ids.
+        """
+        url = f"{self.base_url}/preserved/{aip}/files"
+        params = {"page": page, "limit": limit}
+
+        response = self.session.get(url, params=params)
+        data = response.json()["data"]
+
+        return SearchResultV3[AIPFileListEntry].from_data(
+            data=data, page=page, limit=limit, entry_type=AIPFileListEntry
+        )

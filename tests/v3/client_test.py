@@ -20,6 +20,7 @@ from dpres_rest_api_client.v3.client import (
     AIPResult,
     TransferResult,
     DIPResult,
+    AIPFileListEntry,
 )
 from requests.exceptions import HTTPError
 from requests_mock import mocker
@@ -660,3 +661,23 @@ def test_disseminate_conflicting_params(
                 DisseminationAIPEntry(AIPID("test_aip_id_2"), ["0", "1", "2"])
             ],
         )
+
+
+@pytest.mark.usefixtures("mock_access_rest_api_v3_aip_files")
+def test_list_aip_files(client_v3):
+    """
+    Test that the method for listing AIP files handles paging and that the
+    result follows the expected format.
+    """
+    page = 1
+    all = []
+    while True:
+        res = client_v3.list_aip_files("testaipid", limit=2, page=page)
+        all.extend(res.results)
+        if not res.has_next_page:
+            break
+        page += 1
+
+    assert len(all) == 5
+
+    assert all[4] == AIPFileListEntry("file:///data/testfile_4.mp3", "id_4")
