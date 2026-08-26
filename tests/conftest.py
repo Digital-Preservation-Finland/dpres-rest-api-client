@@ -537,3 +537,76 @@ def mock_access_rest_api_v3_aip_files(access_rest_api_host, contract_id):
             status_code=200,
         )
         yield
+
+
+@pytest.fixture(scope="function")
+def mock_access_rest_api_v3_aip_divs(access_rest_api_host, contract_id):
+    """
+    Mock access-rest-api V3 API response for listing divs in an AIP. The
+    responses are paged JSON results. There are two endpoints: One with five
+    divs, and one with no divs at all.
+    """
+
+    aipid = "testaipid"
+    aipid2 = "testaipid_2"
+
+    full_divs = []
+    for i in range(5):
+        full_divs.append(
+            {
+                "div_id": f"id_0123_{i}",
+                "attributes": {
+                    "label": "label",
+                    "type": "type",
+                },
+            }
+        )
+
+    def div_list_response(request, divs: list):
+        limit = request.qs.get("limit", [""])[0]
+        page = request.qs.get("page", [""])[0]
+        if not limit:
+            limit = "20"
+        if not page:
+            page = "1"
+        start_index = int(limit) * (int(page) - 1)
+        end_index = int(limit) * (int(page))
+
+        divs_in_range = divs[start_index:end_index]
+
+        links = {
+            "self": "self",
+            "previous": "previous" if start_index > 0 else "",
+            "next": "next" if end_index < len(divs) else "",
+        }
+
+        obj = {
+            "status": "success",
+            "data": {
+                "results": divs_in_range,
+                "links": links,
+            },
+        }
+
+        return json.dumps(obj)
+
+    def div_list_full(request, context):
+        return div_list_response(request, full_divs)
+
+    def div_list_empty(request, context):
+        return div_list_response(request, [])
+
+    with requests_mock.Mocker() as mock:
+        mock.get(
+            f"{access_rest_api_host}/api/3.0/{contract_id}/preserved/{aipid}/divs",
+            text=div_list_full,
+            status_code=200,
+        )
+
+        mock.get(
+            f"{access_rest_api_host}/api/3.0/{contract_id}/preserved/{aipid2}/divs",
+            text=div_list_empty,
+            status_code=200,
+        )
+
+        yield

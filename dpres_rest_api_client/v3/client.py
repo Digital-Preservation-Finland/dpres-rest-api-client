@@ -58,7 +58,14 @@ class SearchResultV3(Generic[Result]):
     @staticmethod
     def _cast_results(
         entry: dict, entry_type: type
-    ) -> None | AIPResult | TransferResult | DIPResult | AIPFileListEntry:
+    ) -> (
+        None
+        | AIPResult
+        | TransferResult
+        | DIPResult
+        | AIPFileListEntry
+        | AIPDivListEntry
+    ):
         if entry_type == AIPResult:
             return AIPResult(
                 AIPID(entry["aip_id"]),
@@ -91,6 +98,17 @@ class SearchResultV3(Generic[Result]):
                 entry["filepath"],
                 entry["file_id"],
             )
+        elif entry_type == AIPDivListEntry:
+            return AIPDivListEntry(
+                entry["div_id"],
+                DivAttributes(
+                    entry["attributes"].get("label"),
+                    entry["attributes"].get("type"),
+                    entry["attributes"].get("order"),
+                    entry["attributes"].get("orderlabel"),
+                ),
+            )
+        return None
 
 
 @dataclass
@@ -146,6 +164,27 @@ class AIPFileListEntry:
     """
     filepath: str
     file_id: str
+
+
+@dataclass
+class DivAttributes:
+    """
+    A helper class that contains div specific information.
+    """
+    label: str | None
+    type: str | None
+    order: str | None
+    orderlabel: str | None
+
+
+@dataclass
+class AIPDivListEntry:
+    """
+    Individual result entry returned by :meth:`RestClient.list_aip_divs` and
+    /v3/<contract>/preserved/<aip>/divs
+    """
+    div_id: str
+    attributes: DivAttributes
 
 
 @dataclass
@@ -640,4 +679,25 @@ class RestClient(BaseClient):
 
         return SearchResultV3[AIPFileListEntry].from_data(
             data=data, page=page, limit=limit, entry_type=AIPFileListEntry
+        )
+
+    def list_aip_divs(
+        self, aip: AIPID, page: int = 1, limit: int = 20
+    ) -> SearchResultV3[AIPDivListEntry]:
+        """
+        Lists information about AIP's structmap divs. This method has paging
+        functionality,
+
+        :param aip: The id of the AIP in question
+        :param page: The number of the page retrieved as integer.
+        :param limit: The maximum number of the entries in paging as integer.
+        """
+        url = f"{self.base_url}/preserved/{aip}/divs"
+        params = {"page": page, "limit": limit}
+
+        response = self.session.get(url, params=params)
+        data = response.json()["data"]
+
+        return SearchResultV3[AIPDivListEntry].from_data(
+            data=data, page=page, limit=limit, entry_type=AIPDivListEntry
         )

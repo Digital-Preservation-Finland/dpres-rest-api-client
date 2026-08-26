@@ -21,6 +21,8 @@ from dpres_rest_api_client.v3.client import (
     TransferResult,
     DIPResult,
     AIPFileListEntry,
+    AIPDivListEntry,
+    DivAttributes,
 )
 from requests.exceptions import HTTPError
 from requests_mock import mocker
@@ -681,3 +683,36 @@ def test_list_aip_files(client_v3):
     assert len(all) == 5
 
     assert all[4] == AIPFileListEntry("file:///data/testfile_4.mp3", "id_4")
+
+
+@pytest.mark.usefixtures("mock_access_rest_api_v3_aip_divs")
+def test_list_aip_divs(client_v3):
+    """
+    Test that the method for listing AIP divs handles paging and that the
+    result follows the expected format.
+    """
+    page = 1
+    all = []
+    while True:
+        res = client_v3.list_aip_divs("testaipid", limit=2, page=page)
+        all.extend(res.results)
+        if not res.has_next_page:
+            break
+        page += 1
+
+    assert len(all) == 5
+
+    assert all[4] == AIPDivListEntry(
+        "id_0123_4", DivAttributes("label", "type", None, None)
+    )
+
+
+@pytest.mark.usefixtures("mock_access_rest_api_v3_aip_divs")
+def test_list_aip_divs_empty(client_v3):
+    """
+    Test that the method for listing AIP divs returns an empty list when
+    there is no divs present.
+    """
+    res = client_v3.list_aip_divs("testaipid_2")
+    assert not res.has_next_page
+    assert res.results == []

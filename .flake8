@@ -3,4 +3,9 @@
 # with multi-line 'with' statements. Disable flake8 here and yield to pylint
 # instead.
 ignore =
-    E125
+    E125,
+# W503 is in direct conflict with W504. This conflict is about the order of line breaks and binary operators.
+# Out of these 2, placing line break before binary operator is preferable, so ignore W503.
+# (https://www.flake8rules.com/rules/W503.html , https://www.flake8rules.com/rules/W504.html ,
+# https://peps.python.org/pep-0008/#should-a-line-break-before-or-after-a-binary-operator)
+    W503
