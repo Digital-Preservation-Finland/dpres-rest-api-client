@@ -221,6 +221,101 @@ def test_download(cli_runner, access_rest_api_host, requests_mock, tmp_path):
     assert "delete" in output
 
 
+@pytest.mark.parametrize(
+    "params,expected_file_format,expected_name",
+    (
+        # Defaults to 'zip' and AIP ID as the prefix
+        ([], "zip", "spam.zip"),
+
+        # 'tar' used per filename
+        (["--path", "spam.tar"], "tar", "spam.tar"),
+
+        # 'zip' used due to manual choice despite filename
+        (["--path", "spam.tar", "--archive-format", "zip"], "zip", "spam.tar"),
+
+        # Defaults to 'zip' with filename without suffix
+        (["--path", "spam"], "zip", "spam"),
+    )
+)
+def test_download_correct_file_format(
+        cli_runner, access_rest_api_host, requests_mock, tmp_path, monkeypatch,
+        params, expected_file_format, expected_name):
+    """
+    Test downloading a DIP with `download` command using different parameters
+    and ensure the correct file format and name is used in each case
+    """
+    requests_mock.post(
+        f"{access_rest_api_host}/api/2.0/urn:uuid:fake_contract_id/"
+        "preserved/spam/disseminate",
+        json={
+            "status": "success",
+            "data": {
+                "disseminated": (
+                    "/api/2.0/urn:uuid:fake_contract_id/disseminated/"
+                    "spam_dip"
+                )
+            },
+        },
+        additional_matcher=(
+            lambda req: req.qs["format"][0] == expected_file_format
+        )
+    )
+    requests_mock.get(
+        f"{access_rest_api_host}/api/2.0/urn:uuid:fake_contract_id/"
+        "disseminated/spam_dip",
+        json={
+            "status": "success",
+            "data": {
+                "complete": "true",
+                "actions": {
+                    "download": (
+                        "/api/2.0/urn:uuid:fake_contract_id/disseminated/"
+                        "spam_dip/download"
+                    )
+                },
+            },
+        },
+    )
+    requests_mock.get(
+        f"{access_rest_api_host}/api/2.0/urn:uuid:fake_contract_id/"
+        "disseminated/spam_dip/download",
+        content=b"This is a complete DIP in a ZIP sent in a blip",
+        headers={
+            # requests-mock does not generate a Content-Length header
+            # automatically
+            "Content-Length": "46"
+        },
+    )
+    requests_mock.delete(
+        f"{access_rest_api_host}/api/2.0/urn:uuid:fake_contract_id/"
+        "disseminated/spam_dip",
+        json={
+            "status": "success",
+            "data": {
+                "deleted": "true",
+            },
+        },
+    )
+
+    download_dir = tmp_path / "download"
+    download_dir.mkdir()
+
+    # Change working directory to download directory to ensure they're
+    # always saved there
+    monkeypatch.chdir(download_dir)
+
+    result = cli_runner(
+        ["dip", "download"] + params + ["spam"]
+    )
+    output = result.output
+
+    assert "downloading to " in output
+
+    download_path = next(download_dir.iterdir())
+    assert download_path.is_file()
+    assert download_path.name == expected_name
+
+
 def test_delete_dip_query(cli_runner, access_rest_api_host, requests_mock):
     """
     Test performing DIP deletion with both a successful deletion

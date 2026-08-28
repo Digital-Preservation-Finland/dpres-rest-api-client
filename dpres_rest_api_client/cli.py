@@ -2,6 +2,7 @@
 CLI tool to retrieve information and perform requests on packages in the DPRES
 service.
 """
+from __future__ import annotations
 
 import itertools
 import os
@@ -43,6 +44,48 @@ def _spinner_animation():
     :return: Infinite iterator used to provide a very simple spinner animation.
     """
     return itertools.cycle(["|", "|", "/", "/", "-", "-", "\\", "\\"])
+
+
+def _get_default_file_format_and_path(
+        file_format: str, choices: list[str],
+        default_file_prefix: str,
+        default_file_format: str,
+        path: str | None = None) -> tuple[str, Path]:
+    """
+    :param file_format: File format CLI parameter. If 'auto', determine
+        file format from path name or default to 'default_file_format'.
+    :param choices: List of allowed choices for file format
+    :param default_file_prefix: Default file prefix for the filename
+        if not provided
+    :param default_file_format: Default file format to use if not provided
+        in either 'file_format' or 'path' (file extension)
+    :param path: Optional path. If not provided, defaults to working directory
+        with filename '<default_file_prefix>.<default_file_format>'.
+
+    :returns: (file_format, path) tuple
+    """
+    if path:
+        path = Path(path)
+
+    if file_format == "auto":
+        if path is None:
+            path = (
+                Path(".").resolve()
+                / f"{default_file_prefix}.{default_file_format}"
+            )
+            file_format = default_file_format
+        else:
+            file_format = path.suffix[1:].lower()
+            if file_format not in choices:
+                file_format = default_file_format
+
+    if path is None:
+        path = (
+            Path(".").resolve()
+            / f"{default_file_prefix}.{default_file_format}"
+        )
+
+    return (file_format, path)
 
 
 @click.group()
@@ -99,9 +142,13 @@ def dip():
 )
 @click.option(
     "--archive-format",
-    type=click.Choice(["zip", "tar"]),
-    default="zip",
-    help="Archive type to download. Defaults to 'zip'."
+    type=click.Choice(["zip", "tar", "auto"]),
+    default="auto",
+    help=(
+        "Archive type to download. Default is 'auto', which determines the "
+        "archive format using the filename (if provided), "
+        "or defaults to 'zip'."
+    )
 )
 @click.option(
     "--catalog",
@@ -127,10 +174,13 @@ def download(ctx, path, archive_format, catalog, delete, aip_id):
     Download a file and save it to the given path.
     """
     client = ctx.obj.client_v2
-    if not path:
-        path = (Path(".").resolve() / aip_id).with_suffix(f".{archive_format}")
-    else:
-        path = Path(path)
+    archive_format, path = _get_default_file_format_and_path(
+        file_format=archive_format,
+        choices=("zip", "tar"),
+        default_file_prefix=aip_id,
+        default_file_format="zip",
+        path=path
+    )
 
     dip_cache = DisseminationCache()
     dip_cache.gc()
