@@ -145,7 +145,7 @@ def wrong_file_ending_fx(tmp_path):
 
 
 @pytest.fixture(scope="function")
-def mock_tus_endpoints(access_rest_api_host, transfer_id):
+def mock_tus_endpoints(requests_mock, access_rest_api_host, transfer_id):
     """Mock TUS endpoints by having dynamic responses."""
     tus_url = f"{access_rest_api_host}/api/3.0/transfers"
     transfer_exists = False
@@ -207,22 +207,21 @@ def mock_tus_endpoints(access_rest_api_host, transfer_id):
         }
         return ""
 
-    with requests_mock.Mocker() as mock:
-        mock.options(
-            f"{tus_url}", text="", headers=options_headers, status_code=204
-        )
-        mock.head(
-            f"{tus_url}/{transfer_id}", text=head_response, status_code=204
-        )
-        mock.patch(
-            f"{tus_url}/{transfer_id}", text=patch_response, status_code=204
-        )
-        mock.post(f"{tus_url}", text=post_response, status_code=201)
-        yield
+    requests_mock.options(
+        f"{tus_url}", text="", headers=options_headers, status_code=204
+    )
+    requests_mock.head(
+        f"{tus_url}/{transfer_id}", text=head_response, status_code=204
+    )
+    requests_mock.patch(
+        f"{tus_url}/{transfer_id}", text=patch_response, status_code=204
+    )
+    requests_mock.post(f"{tus_url}", text=post_response, status_code=201)
 
 
 @pytest.fixture(scope="function")
-def mock_access_rest_api_v3_endpoints(access_rest_api_host, contract_id):
+def mock_access_rest_api_v3_endpoints(
+        requests_mock, access_rest_api_host, contract_id):
     # We'll use fixed transfer_id.
     transfer_ids = {
         "accepted": "sip.tar-00000000-0000-0000-0000-000000000001",
@@ -230,101 +229,99 @@ def mock_access_rest_api_v3_endpoints(access_rest_api_host, contract_id):
         "failure": "sip.tar-99999999-9999-9999-9999-999999999999",
     }
     xml_content = '<?xml version="1.0" encoding="utf-8" ?>\n<root>Whee</root>'
-    with requests_mock.Mocker() as mock:
-        for key, transfer_id in transfer_ids.items():
-            if key == "accepted":
-                get_transfer_response = json.dumps(
-                    {
-                        "data": {
-                            "actions": {
-                                "report": (
-                                    f"/api/3.0/{contract_id}/transfers/"
-                                    f"{transfer_id}/report"
-                                ),
-                            },
-                            "filename": "accepted_package.tar.gz",
-                            "sip": {
-                                "sip_id": "accepted-package",
-                                "sip_size": 1,
-                            },
-                            "status": "accepted",
-                            "timestamp": "Fri, 07 Mar 2025 13:46:44 GMT",
-                            "transfer_id": f"{transfer_id}",
+    for key, transfer_id in transfer_ids.items():
+        if key == "accepted":
+            get_transfer_response = json.dumps(
+                {
+                    "data": {
+                        "actions": {
+                            "report": (
+                                f"/api/3.0/{contract_id}/transfers/"
+                                f"{transfer_id}/report"
+                            ),
                         },
-                        "status": "success",
-                    }
-                )
-                get_transfer_status_code = 200
-                get_transfer_report_response = xml_content
-                get_transfer_report_status_code = 200
-                delete_transfer_response = ""
-                delete_transfer_status_code = 204
-            if key == "in_progress":
-                get_transfer_response = json.dumps(
-                    {
-                        "data": {
-                            "actions": {},
-                            "filename": "accepted_package.tar.gz",
-                            "sip": {},
-                            "status": "in_progress",
-                            "timestamp": "Fri, 07 Mar 2025 13:46:44 GMT",
-                            "transfer_id": f"{transfer_id}",
+                        "filename": "accepted_package.tar.gz",
+                        "sip": {
+                            "sip_id": "accepted-package",
+                            "sip_size": 1,
                         },
-                        "status": "success",
-                    }
-                )
-                get_transfer_status_code = 200
-                get_transfer_report_response = xml_content
-                get_transfer_report_status_code = 200
-                delete_transfer_response = ""
-                delete_transfer_status_code = 204
-            elif key == "failure":
-                get_transfer_response = json.dumps(
-                    {
-                        "message": "No transfer!",
-                        "status": "fail",
-                    }
-                )
-                get_transfer_status_code = 404
-                get_transfer_report_response = json.dumps(
-                    {
-                        "message": "No report!",
-                        "status": "fail",
-                    }
-                )
-                get_transfer_report_status_code = 404
-                delete_transfer_response = json.dumps(
-                    {
-                        "message": "No delete!",
-                        "status": "fail",
-                    }
-                )
-                delete_transfer_status_code = 404
+                        "status": "accepted",
+                        "timestamp": "Fri, 07 Mar 2025 13:46:44 GMT",
+                        "transfer_id": f"{transfer_id}",
+                    },
+                    "status": "success",
+                }
+            )
+            get_transfer_status_code = 200
+            get_transfer_report_response = xml_content
+            get_transfer_report_status_code = 200
+            delete_transfer_response = ""
+            delete_transfer_status_code = 204
+        if key == "in_progress":
+            get_transfer_response = json.dumps(
+                {
+                    "data": {
+                        "actions": {},
+                        "filename": "accepted_package.tar.gz",
+                        "sip": {},
+                        "status": "in_progress",
+                        "timestamp": "Fri, 07 Mar 2025 13:46:44 GMT",
+                        "transfer_id": f"{transfer_id}",
+                    },
+                    "status": "success",
+                }
+            )
+            get_transfer_status_code = 200
+            get_transfer_report_response = xml_content
+            get_transfer_report_status_code = 200
+            delete_transfer_response = ""
+            delete_transfer_status_code = 204
+        elif key == "failure":
+            get_transfer_response = json.dumps(
+                {
+                    "message": "No transfer!",
+                    "status": "fail",
+                }
+            )
+            get_transfer_status_code = 404
+            get_transfer_report_response = json.dumps(
+                {
+                    "message": "No report!",
+                    "status": "fail",
+                }
+            )
+            get_transfer_report_status_code = 404
+            delete_transfer_response = json.dumps(
+                {
+                    "message": "No delete!",
+                    "status": "fail",
+                }
+            )
+            delete_transfer_status_code = 404
 
-            mock.get(
-                f"{access_rest_api_host}/api/3.0/{contract_id}/transfers/"
-                f"{transfer_id}",
-                text=get_transfer_response,
-                status_code=get_transfer_status_code,
-            )
-            mock.get(
-                f"{access_rest_api_host}/api/3.0/{contract_id}/transfers/"
-                f"{transfer_id}/report",
-                text=get_transfer_report_response,
-                status_code=get_transfer_report_status_code,
-            )
-            mock.delete(
-                f"{access_rest_api_host}/api/3.0/{contract_id}/transfers/"
-                f"{transfer_id}",
-                text=delete_transfer_response,
-                status_code=delete_transfer_status_code,
-            )
-        yield
+        requests_mock.get(
+            f"{access_rest_api_host}/api/3.0/{contract_id}/transfers/"
+            f"{transfer_id}",
+            text=get_transfer_response,
+            status_code=get_transfer_status_code,
+        )
+        requests_mock.get(
+            f"{access_rest_api_host}/api/3.0/{contract_id}/transfers/"
+            f"{transfer_id}/report",
+            text=get_transfer_report_response,
+            status_code=get_transfer_report_status_code,
+        )
+        requests_mock.delete(
+            f"{access_rest_api_host}/api/3.0/{contract_id}/transfers/"
+            f"{transfer_id}",
+            text=delete_transfer_response,
+            status_code=delete_transfer_status_code,
+        )
 
 
 @pytest.fixture(scope="function")
-def mock_access_rest_api_v3_endpoints_interactive(access_rest_api_host,
-                                                  contract_id):
+def mock_access_rest_api_v3_endpoints_interactive(
+        requests_mock, access_rest_api_host, contract_id):
     """Mock access-rest-api v3 endpoints by having dynamic responses.
     This mock is tailored for the test where whole cycle has to be conducted.
     """
@@ -390,36 +387,35 @@ def mock_access_rest_api_v3_endpoints_interactive(access_rest_api_host,
         else:
             context.status_code = 404
 
-    with requests_mock.Mocker() as mock:
-        mock.get(
-            f"{access_rest_api_host}/api/3.0/{contract_id}/transfers/"
-            f"{transfer_id}",
-            text=get_transfer_response,
-            status_code=200,
-        )
-        mock.get(
-            f"{access_rest_api_host}/api/3.0/{contract_id}/transfers/"
-            f"{transfer_id_fail}",
-            json={"status": "fail"},
-            status_code=404,
-        )
-        mock.get(
-            f"{access_rest_api_host}/api/3.0/{contract_id}/transfers/"
-            f"{transfer_id}/report",
-            text=get_transfer_report_response,
-            status_code=200,
-        )
-        mock.delete(
-            f"{access_rest_api_host}/api/3.0/{contract_id}/transfers/"
-            f"{transfer_id}",
-            text=delete_transfer_response,
-            status_code=204,
-        )
-        yield
+    requests_mock.get(
+        f"{access_rest_api_host}/api/3.0/{contract_id}/transfers/"
+        f"{transfer_id}",
+        text=get_transfer_response,
+        status_code=200,
+    )
+    requests_mock.get(
+        f"{access_rest_api_host}/api/3.0/{contract_id}/transfers/"
+        f"{transfer_id_fail}",
+        json={"status": "fail"},
+        status_code=404,
+    )
+    requests_mock.get(
+        f"{access_rest_api_host}/api/3.0/{contract_id}/transfers/"
+        f"{transfer_id}/report",
+        text=get_transfer_report_response,
+        status_code=200,
+    )
+    requests_mock.delete(
+        f"{access_rest_api_host}/api/3.0/{contract_id}/transfers/"
+        f"{transfer_id}",
+        text=delete_transfer_response,
+        status_code=204,
+    )
 
 
 @pytest.fixture(scope="function")
-def mock_access_rest_api_v3_list_endpoint(access_rest_api_host, contract_id):
+def mock_access_rest_api_v3_list_endpoint(
+        requests_mock, access_rest_api_host, contract_id):
     # We'll use fixed transfer_id.
     transfers = []
     valid_statuses = ["accepted", "in_progress", "rejected", "uploading"]
@@ -479,17 +475,16 @@ def mock_access_rest_api_v3_list_endpoint(access_rest_api_host, contract_id):
         )
         return response
 
-    with requests_mock.Mocker() as mock:
-        mock.get(
-            f"{access_rest_api_host}/api/3.0/{contract_id}/transfers",
-            text=list_transfer_response,
-            status_code=200,
-        )
-        yield
+    requests_mock.get(
+        f"{access_rest_api_host}/api/3.0/{contract_id}/transfers",
+        text=list_transfer_response,
+        status_code=200,
+    )
 
 
 @pytest.fixture(scope="function")
-def mock_access_rest_api_v3_aip_files(access_rest_api_host, contract_id):
+def mock_access_rest_api_v3_aip_files(
+        requests_mock, access_rest_api_host, contract_id):
     """
     Mock access-rest-api V3 API response for listing files in an AIP. The
     responses are paged JSON results.
@@ -530,17 +525,16 @@ def mock_access_rest_api_v3_aip_files(access_rest_api_host, contract_id):
 
         return json.dumps(obj)
 
-    with requests_mock.Mocker() as mock:
-        mock.get(
-            f"{access_rest_api_host}/api/3.0/{contract_id}/preserved/{aipid}/files",
-            text=aip_list_response,
-            status_code=200,
-        )
-        yield
+    requests_mock.get(
+        f"{access_rest_api_host}/api/3.0/{contract_id}/preserved/{aipid}/files",
+        text=aip_list_response,
+        status_code=200,
+    )
 
 
 @pytest.fixture(scope="function")
-def mock_access_rest_api_v3_aip_divs(access_rest_api_host, contract_id):
+def mock_access_rest_api_v3_aip_divs(
+        requests_mock, access_rest_api_host, contract_id):
     """
     Mock access-rest-api V3 API response for listing divs in an AIP. The
     responses are paged JSON results. There are two endpoints: One with five
@@ -596,17 +590,14 @@ def mock_access_rest_api_v3_aip_divs(access_rest_api_host, contract_id):
     def div_list_empty(request, context):
         return div_list_response(request, [])
 
-    with requests_mock.Mocker() as mock:
-        mock.get(
-            f"{access_rest_api_host}/api/3.0/{contract_id}/preserved/{aipid}/divs",
-            text=div_list_full,
-            status_code=200,
-        )
+    requests_mock.get(
+        f"{access_rest_api_host}/api/3.0/{contract_id}/preserved/{aipid}/divs",
+        text=div_list_full,
+        status_code=200,
+    )
 
-        mock.get(
-            f"{access_rest_api_host}/api/3.0/{contract_id}/preserved/{aipid2}/divs",
-            text=div_list_empty,
-            status_code=200,
-        )
-
-        yield
+    requests_mock.get(
+        f"{access_rest_api_host}/api/3.0/{contract_id}/preserved/{aipid2}/divs",
+        text=div_list_empty,
+        status_code=200,
+    )
