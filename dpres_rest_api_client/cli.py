@@ -75,13 +75,19 @@ def write_config():
         )
 
 
-@cli.group()
+@cli.group(deprecated=True)
 def dip():
-    """Download and delete DIPs created from a package."""
+    """Download and delete DIPs created from a package.
+
+    Deprecated and will be removed in a future release.
+    """
     pass
 
 
-@dip.command(help="Download a preserved package from the DPRES service")
+@dip.command(
+    help="Download a preserved package from the DPRES service",
+    deprecated=True,
+)
 @click.option(
     "--path",
     type=click.Path(file_okay=True, dir_okay=False, writable=True),
@@ -203,7 +209,8 @@ def _download_save_to_path(dip_request, path):
 
 
 @dip.command(
-    help="Delete a completed DIP from the DPRES service"
+    help="Delete a completed DIP from the DPRES service",
+    deprecated=True,
 )
 @click.argument("dip_id")
 @click.pass_context

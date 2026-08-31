@@ -91,6 +91,12 @@ class AccessClient(BaseClient):
         :param str archive_format: Archive format used for the disseminated
                                    DIP. Default is 'zip'.
         """
+        warnings.warn(
+            "V2 create_dip_request functionality is deprecated. "
+            "Consider using RestClient.disseminate instead.",
+            DeprecationWarning,
+            stacklevel=2
+        )
         dip_request = DIPRequest(
             client=self,
             aip_id=aip_id,
@@ -107,6 +113,12 @@ class AccessClient(BaseClient):
 
         :param dip_id: Identifier of the DIP to delete
         """
+        warnings.warn(
+            "V2 delete_dissemination functionality is deprecated. "
+            "Consider using RestClient.delete_dip instead.",
+            DeprecationWarning,
+            stacklevel=2
+        )
         response = self.session.delete(
             f"{self.base_url}/disseminated/{dip_id}"
         )
@@ -123,6 +135,13 @@ class AccessClient(BaseClient):
                   of dicts. Returns an empty list if there are no ingest
                   reports available, or if the given SIP id cannot be found.
         """
+        warnings.warn(
+            "V2 get_ingest_report_entries functionality is deprecated. "
+            "Consider using RestClient.list_transfers or "
+            "RestClient.get_transfer instead.",
+            DeprecationWarning,
+            stacklevel=2
+        )
         sip_id = quote(sip_id, safe="")
         url = f"{self.base_url}/ingest/report/{sip_id}"
         try:
@@ -168,6 +187,13 @@ class AccessClient(BaseClient):
                 "and 'html' file formats are accepted"
             )
 
+        warnings.warn(
+            "V2 get_ingest_report functionality is deprecated. "
+            "Consider using RestClient.get_validation_report instead.",
+            DeprecationWarning,
+            stacklevel=2
+        )
+
         sip_id = quote(sip_id, safe="")
         transfer_id = quote(transfer_id, safe="")
         url = (
@@ -195,6 +221,13 @@ class AccessClient(BaseClient):
         :returns: The latest ingest report created for the package as a byte
                   string, or None if no reports are found
         """
+        warnings.warn(
+            "V2 get_latest_ingest_report functionality is deprecated. "
+            "Consider using RestClient.get_transfer and "
+            "RestClient.get_validation_report instead.",
+            DeprecationWarning,
+            stacklevel=2
+        )
         report_entries = self.get_ingest_report_entries(sip_id)
 
         if not report_entries:
