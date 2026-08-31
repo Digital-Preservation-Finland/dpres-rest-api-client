@@ -465,8 +465,6 @@ def get_transfer_info(ctx, transfer_id):
     click.echo(f"Timestamp: {data.timestamp}")
 
 
-# TODO: Provide "auto" file-type as choice option so that it'd make
-#       the selection based on given "path" output. (KDKPAS-3482)
 @transfer.command(
     "get-report",
     help=(
@@ -477,8 +475,8 @@ def get_transfer_info(ctx, transfer_id):
 @click.argument("transfer_id")
 @click.option(
     "--file-type",
-    default="xml",
-    type=click.Choice(["html", "xml"]),
+    default="auto",
+    type=click.Choice(["html", "xml", "auto"]),
     help="File type of the returned validation report. Defaults to 'xml'.",
 )
 @click.option(
@@ -499,15 +497,18 @@ def get_transfer_report(ctx, transfer_id, file_type, path):
         client=client, transfer_id=transfer_id
     )
 
+    file_type, path = _get_default_file_format_and_path(
+        file_format=file_type,
+        choices=("xml", "html"),
+        default_file_prefix=f"{transfer_id}-report",
+        default_file_format="xml",
+        path=path
+    )
+
     click.echo("Downloading SIP validation report...")
     report = client.get_validation_report(
         transfer_id=transfer_id, report_type=file_type
     )
-
-    if not path:
-        path = Path(".").resolve() / f"{transfer_id}-report.{file_type}"
-    else:
-        path = Path(path)
 
     with open(path, "wb") as file:
         file.write(report)

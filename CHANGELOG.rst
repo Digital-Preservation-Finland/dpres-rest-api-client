@@ -13,6 +13,7 @@ Unreleased
 Changed
 ~~~~~~~
 - ``dpres-client dip download`` will select the archive format automatically based on the filename if possible, defaulting to ``zip`` otherwise
+- ``dpres-client transfer get-report`` will select the report format automatically based on the filename if possible, defaulting to ``xml`` otherwise
 
 `3.0.0`_ - 2026-08-28
 ---------------------

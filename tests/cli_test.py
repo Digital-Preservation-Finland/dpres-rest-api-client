@@ -458,6 +458,47 @@ def test_transfers_get_report(
 
 @pytest.mark.usefixtures("mock_access_rest_api_v3_endpoints")
 @pytest.mark.parametrize(
+    "params,expected_file_type,expected_name",
+    (
+        # Defaults to 'xml' and transfer ID as the prefix
+        ([], "xml", "sip.tar-00000000-0000-0000-0000-000000000001-report.xml"),
+
+        # 'html' used per filename
+        (["--path", "sip.html"], "html", "sip.html"),
+
+        # 'html' used due to manual choice despite filename
+        (["--path", "sip.xml", "--file-type", "html"], "html", "sip.xml"),
+
+        # Defaults to 'xml' with filename without suffix
+        (["--path", "sip"], "xml", "sip"),
+
+    )
+)
+def test_transfers_get_report_correct_file_format(
+        cli_runner, requests_mock, tmp_path, monkeypatch,
+        params, expected_file_type, expected_name):
+    """
+    Test downloading a DIP with `download` command using different parameters
+    and ensure the correct file format and name is used in each case
+    """
+    transfer_id = "sip.tar-00000000-0000-0000-0000-000000000001"
+    monkeypatch.chdir(tmp_path)
+
+    report_path = tmp_path / expected_name
+
+    result = cli_runner(["transfer", "get-report", transfer_id] + params)
+
+    assert result.exit_code == 0
+    assert report_path.is_file()
+
+    last_request = requests_mock.request_history[-1]
+
+    # The expected file type was used to generate the report
+    assert last_request.qs["type"] == [expected_file_type]
+
+
+@pytest.mark.usefixtures("mock_access_rest_api_v3_endpoints")
+@pytest.mark.parametrize(
     ("transfer_id", "transfer_exists"),
     [
         ("sip.tar-00000000-0000-0000-0000-000000000001", True),
