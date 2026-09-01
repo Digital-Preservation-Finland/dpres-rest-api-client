@@ -446,14 +446,18 @@ class RestClient(BaseClient):
         information or report is no longer possible.
 
         :param transfer_id: Transfer ID to delete.
-        :return: True on success, otherwise False.
+        :return: True on success.
+                 False if transfer does not exist and could not be deleted.
         """
         url = f"{self.base_url}/transfers/{transfer_id}"
         try:
             self.session.delete(url)
             return True
-        except HTTPError:
-            return False
+        except HTTPError as exc:
+            if exc.response.status_code == 404:
+                return False
+
+            raise
 
     def list_transfers(
         self,
