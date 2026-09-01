@@ -8,6 +8,7 @@ import itertools
 import os
 import time
 from pathlib import Path
+from typing import Callable
 
 import click
 import humanize
@@ -191,7 +192,11 @@ def download(ctx, path, archive_format, catalog, delete, aip_id):
     click.echo(f"Using cache {dip_cache.cache_path}")
 
     # Start polling until the disseminated DIP is ready for download
-    _download_poll_until_ready(dip_request)
+    _poll_until_condition(
+        "DIP has been scheduled for creation, "
+        "polling until the DIP is ready for download...",
+        dip_request.check_status
+    )
 
     click.echo("")
     click.echo(f"DIP is available, downloading to {path}...")
@@ -208,22 +213,22 @@ def download(ctx, path, archive_format, catalog, delete, aip_id):
     click.echo("Done!")
 
 
-def _download_poll_until_ready(dip_request):
+def _poll_until_condition(text: str, cond: Callable):
     """
-    Poll for DIP until it is ready for download. Display a spinner animation
-    while the user is waiting.
+    Show given text with a spinner and poll until the given condition
+    returns a truthy value
     """
     spinner_anim = _spinner_animation()
 
     # Start polling until the disseminated DIP is ready for download
     poll_interval = -0.1
     poll_interval_iter = get_poll_interval_iter()
-    while not dip_request.ready:
+    ready = cond()
+    while not ready:
         # Print a status message with a simple spinner animation so that the
         # user doesn't get antsy
         click.echo(
-            f"DIP has been scheduled for creation, polling until the DIP is "
-            f"ready for download... {next(spinner_anim)}"
+            f"{text} {next(spinner_anim)}"
             # Carriage return so that the same line is overwritten
             f"\r",
             nl=False
@@ -231,7 +236,7 @@ def _download_poll_until_ready(dip_request):
 
         if poll_interval < 0:
             # Poll with start interval of 3s and max of 60s
-            dip_request.check_status()
+            ready = cond()
             poll_interval = next(poll_interval_iter)
         else:
             poll_interval -= 0.25
