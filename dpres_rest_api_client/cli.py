@@ -454,8 +454,10 @@ def get_transfer_info(ctx, transfer_id):
     client = ctx.obj.client_v3
     try:
         data = client.get_transfer(transfer_id=transfer_id)
-    except HTTPError:
-        raise ClickException(f"No transfer found for '{transfer_id}'")
+    except HTTPError as exc:
+        if exc.response.status_code == 404:
+            raise ClickException(f"No transfer found for '{transfer_id}'")
+        raise
 
     click.echo(f"Transfer ID: {data.transfer_id}")
     if data.sip:
@@ -533,9 +535,11 @@ def _poll_until_transfer_processed(client, transfer_id):
     try:
         data = client.get_transfer(transfer_id=transfer_id)
         current_status = data.status
-    except HTTPError:
-        click.echo("")
-        raise ClickException(f"No transfer found for '{transfer_id}'")
+    except HTTPError as exc:
+        if exc.response.status_code == 404:
+            click.echo("")
+            raise ClickException(f"No transfer found for '{transfer_id}'")
+        raise
 
     while current_status not in processed_statuses:
         # Print a status message with a simple spinner animation so that the
