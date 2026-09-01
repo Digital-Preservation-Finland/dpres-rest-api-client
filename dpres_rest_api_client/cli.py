@@ -7,6 +7,7 @@ from __future__ import annotations
 import itertools
 import os
 import time
+from collections.abc import Iterable
 from pathlib import Path
 from typing import Callable
 
@@ -201,7 +202,11 @@ def download(ctx, path, archive_format, catalog, delete, aip_id):
     click.echo("")
     click.echo(f"DIP is available, downloading to {path}...")
 
-    _download_save_to_path(dip_request, path)
+    _save_iterable_to_path(
+        data_iter=dip_request.download_iter,
+        size=dip_request.download_size,
+        path=path
+    )
 
     if delete:
         click.echo("Proceeding to delete DIP from the service...")
@@ -243,24 +248,20 @@ def _poll_until_condition(text: str, cond: Callable):
             time.sleep(0.25)
 
 
-def _download_save_to_path(dip_request, path):
+def _save_iterable_to_path(data_iter: Iterable[bytes], size: int, path: Path):
     """
-    Download the DIP to the given path.
-
-    Display a progress bar during the download.
+    Save the given iterable bytestream to the given path while displaying
+    a progress bar
     """
-    # Download the DIP
-    download_size = dip_request.download_size
-    human_size = humanize.naturalsize(download_size, binary=True)
+    human_size = humanize.naturalsize(size, binary=True)
 
     with click.progressbar(
         label=f"Downloading ({human_size})...",
-        length=download_size
-    ) as progressbar:
-        with path.open("wb", buffering=1024 * 1024) as file_:
-            for chunk in dip_request.download_iter:
-                file_.write(chunk)
-                progressbar.update(1024 * 1024)
+        length=size
+    ) as progressbar, path.open("wb", buffering=1024 * 1024) as file_:
+        for chunk in data_iter:
+            file_.write(chunk)
+            progressbar.update(1024 * 1024)
 
 
 @dip.command(
