@@ -281,6 +281,12 @@ def delete(ctx, dip_id):
     click.echo("Done!")
 
 
+@cli.group()
+def dissemination():
+    """Modern commands to request, download and delete DIPs"""
+    pass
+
+
 @cli.command(
     help="List and search for preserved packages in the DPRES service"
 )
