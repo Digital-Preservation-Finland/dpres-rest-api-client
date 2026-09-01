@@ -13,6 +13,7 @@ Unreleased
 Added
 ~~~~~
 - ``RestClient.disseminate`` now accepts ``str`` parameters for ``dip_format`` and ``id_type``
+- ``DIPDownloader.size`` property that indicates the size of the DIP in bytes
 
 Changed
 ~~~~~~~

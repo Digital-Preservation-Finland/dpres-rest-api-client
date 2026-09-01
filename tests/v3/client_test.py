@@ -488,10 +488,16 @@ def test_download_dip(
         url,
         content=data,
         status_code=200,
-        headers={"Content-Disposition": f"attachment; filename={filename}"},
+        headers={
+            "Content-Disposition": f"attachment; filename={filename}",
+            "Content-Length": "1024"
+        },
     )
 
     downloader = client_v3.get_dip_downloader(DIPID(dip_id))
+
+    assert downloader.size == 1024
+
     downloader.save(tmp_path / downloader.suggested_filename)
 
     expected_path = tmp_path / filename
@@ -521,7 +527,10 @@ def test_stream_dip(
         url,
         content=data,
         status_code=200,
-        headers={"Content-Disposition": "attachment; filename=testtar.tar"},
+        headers={
+            "Content-Disposition": "attachment; filename=testtar.tar",
+            "Content-Length": "1024"
+        },
     )
 
     downloader = client_v3.get_dip_downloader(DIPID(dip_id))

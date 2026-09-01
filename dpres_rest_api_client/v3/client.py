@@ -229,6 +229,11 @@ class DIPDownloader:
     """
     A utility class for helping to download DIP files.
     """
+    suggested_filename: str
+    """Suggested default filename for the DIP"""
+
+    size: int
+    """Size of the DIP in bytes"""
 
     def __init__(self, response: Response):
         """
@@ -240,6 +245,7 @@ class DIPDownloader:
         prefix = "attachment; filename="
         self.suggested_filename = \
             content_disposition[len(prefix):].strip('"\'')
+        self.size = int(response.headers["Content-Length"])
 
     @property
     def download_iter(self) -> Iterator[bytes]:
