@@ -238,7 +238,8 @@ class DIPDownloader:
 
         content_disposition = response.headers["Content-Disposition"]
         prefix = "attachment; filename="
-        self.suggested_filename = content_disposition[len(prefix):]
+        self.suggested_filename = \
+            content_disposition[len(prefix):].strip('"\'')
 
     @property
     def download_iter(self) -> Iterator[bytes]:
