@@ -657,8 +657,7 @@ class RestClient(BaseClient):
         res = self.session.post(url, json=body)
 
         result_url = res.json()["data"]["disseminated"]
-        result_prefix = f"{self.base_url}/disseminated/"
-        id_string = result_url[len(result_prefix):]
+        id_string = result_url.split("/")[-1]
 
         return DIPID(id_string)
 
