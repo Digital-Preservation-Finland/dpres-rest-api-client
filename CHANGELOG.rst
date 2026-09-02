@@ -10,6 +10,10 @@ and this project adheres to `Semantic Versioning <https://semver.org/spec/v2.0.0
 Unreleased
 ----------
 
+Added
+~~~~~
+- ``RestClient.disseminate`` now accepts ``str`` parameters for ``dip_format`` and ``id_type``
+
 Changed
 ~~~~~~~
 - ``dpres-client dip download`` will select the archive format automatically based on the filename if possible, defaulting to ``zip`` otherwise

@@ -603,9 +603,9 @@ class RestClient(BaseClient):
         aip: AIPID | None = None,
         name: str | None = None,
         catalog: str | None = None,
-        dip_format: DIPFormat | None = None,
+        dip_format: DIPFormat | str | None = None,
         only_metadata: bool | None = None,
-        id_type: DisseminationIDType | None = None,
+        id_type: DisseminationIDType | str | None = None,
     ) -> DIPID:
         """Make a dissemination information package.
         It is required to have either of ``aip`` or ``aip_list`` param.
@@ -646,11 +646,11 @@ class RestClient(BaseClient):
         if catalog is not None:
             body["catalog"] = catalog
         if dip_format is not None:
-            body["format"] = dip_format.value
+            body["format"] = DIPFormat(dip_format).value
         if only_metadata is not None:
             body["only_metadata"] = only_metadata
         if id_type is not None:
-            body["id_type"] = id_type.value
+            body["id_type"] = DisseminationIDType(id_type).value
 
         url = f"{self.base_url}/preserved/disseminate"
 
