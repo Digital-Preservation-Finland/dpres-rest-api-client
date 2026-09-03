@@ -47,7 +47,7 @@ def _spinner_animation():
 
 
 def _get_default_file_format_and_path(
-        file_format: str, choices: list[str],
+        file_format: str, choices: Iterable[str],
         default_file_prefix: str,
         default_file_format: str,
         path: str | None = None) -> tuple[str, Path]:
