@@ -29,6 +29,9 @@ from dpres_rest_api_client.v3.client import (
     StatisticsResult,
     SearchResultV3,
     AIPResult,
+    DisseminationAIPEntry,
+    DisseminationIDType,
+    DIPFormat,
 )
 
 
@@ -291,6 +294,174 @@ def delete(ctx, dip_id):
 def dissemination():
     """Modern commands to request, download and delete DIPs"""
     pass
+
+
+# TODO: TPASPKT-1713 This can be easily wrapped into its own CLI command
+def _delete_dip(ctx, dip_id: str):
+    """
+    Delete DIP
+
+    :param ctx: Click context
+    :param dip_id: Identifier of the DIP to delete
+    """
+    client = ctx.obj.client_v3
+
+    try:
+        client.delete_dip(dip_id)
+    except HTTPError as error:
+        if error.response.status_code == 404:
+            raise ClickException(
+                "DIP not found. It might have been deleted already."
+            ) from error
+
+        raise
+
+    click.echo("DIP deleted from the DPRES service.")
+
+
+# TODO: This could easily be wrapped into its own CLI command as-is
+# per TPASPKT-1712.
+def _download_dip(
+        ctx, dip_id: str, path: str | None = None, delete: bool = True):
+    """
+    Download DIP
+
+    :param ctx: Click context
+    :param dip_id: Identifier of the DIP to download
+    :param path: Destination for the DIP to download. If not provided, defaults
+                 to '<dip_id>.<file_format>'.
+    :param delete: Whether to delete the DIP after a successful download
+    """
+    client = ctx.obj.client_v3
+
+    try:
+        _poll_until_condition(
+            "DIP has been scheduled for creation, "
+            "polling until the DIP is ready for download...",
+            lambda: client.get_dip_info(dip_id).complete
+        )
+    except HTTPError as error:
+        if error.response.status_code == 404:
+            raise ClickException(
+                "DIP not found. It might have been deleted."
+            ) from error
+
+        raise
+
+    downloader = client.get_dip_downloader(dip_id)
+
+    if path is None:
+        path = Path(".", downloader.suggested_filename).resolve()
+
+    click.echo("")
+    click.echo(f"DIP is available, downloading to {path}...")
+
+    downloader = client.get_dip_downloader(dip_id)
+
+    _save_iterable_to_path(
+        data_iter=downloader.download_iter,
+        size=downloader.size,
+        path=path
+    )
+
+    click.echo("Done!")
+
+    if delete:
+        _delete_dip(ctx, dip_id)
+
+
+@dissemination.command(
+    help="Request DIP and optionally download it"
+)
+@click.argument("aip_id")
+@click.option(
+    "--file-id", "-f", "file_ids", multiple=True,
+    help=(
+        "File to include in the package. "
+        "Repeat to include multiple files. "
+        "If omitted, all files are included by default."
+    )
+)
+@click.option(
+    "--archive-format",
+    type=click.Choice(["zip", "tar", "auto"]),
+    default="auto",
+    help=(
+        "Archive type to download. Default is 'auto', which determines the "
+        "archive format using --download-path (if provided), "
+        "or defaults to 'zip'."
+    )
+)
+@click.option(
+    "--download", is_flag=True, default=False,
+    help=(
+        "Poll until completion and download DIP. "
+        "Default location is working directory unless "
+        "--download-path is provided."
+    )
+)
+@click.option(
+    "--download-path", type=click.Path(file_okay=True, path_type=Path),
+    default=None,
+    help=(
+        "Poll until completion and download DIP to given path. "
+        "Implicitly enables --download."
+    )
+)
+@click.option(
+    "--delete/--no-delete",
+    default=True,
+    help=(
+        "Delete the DIP from the DPRES service after it has been downloaded. "
+        "No effect if --download or --download-path is not provided. "
+        "Defaults to True. "
+    )
+)
+@click.pass_context
+def request_dip(
+        ctx, aip_id: str, archive_format: str,
+        file_ids: list[str], download: bool,
+        download_path: Path | None, delete: bool):
+    """
+    Request a DIP and optionally download it
+    """
+
+    download = download or download_path
+    client = ctx.obj.client_v3
+
+    if archive_format == "auto":
+        # Only determine the archive format automatically, not the filename;
+        # latter is determined based on the DIP ID that the backend will
+        # generate.
+        archive_format = (
+            download_path.suffix[1:].lower()
+            if download_path and download_path.suffix[1:].lower()
+            in ("tar", "zip")
+            else "zip"
+        )
+
+    params = {"dip_format": DIPFormat(archive_format)}
+
+    if file_ids:
+        # One AIP with subset of files
+        params["id_type"] = DisseminationIDType.FILE
+        params["aip_list"] = [
+            DisseminationAIPEntry(aip_id=aip_id, ids=file_ids)
+        ]
+    else:
+        # One AIP with all files
+        params["aip"] = aip_id
+
+    # TODO: No effort is made to cache a DIP creation request at the moment.
+    # The existing DIP cache is tightly coupled to the V2 implementation.
+    # Ideally the V3 backend would do this work for us and return an existing
+    # DIP ID whenever possible.
+    dip_id = client.disseminate(**params)
+
+    click.echo(dip_id)
+
+    if download:
+        _download_dip(ctx, dip_id=dip_id, path=download_path, delete=delete)
 
 
 @cli.command(

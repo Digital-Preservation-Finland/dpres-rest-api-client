@@ -3,6 +3,7 @@ dpres_rest_api_client.cli tests.
 """
 
 import json
+from pathlib import Path
 from urllib.parse import urlencode
 
 import pytest
@@ -352,6 +353,144 @@ def test_delete_dip_query(cli_runner, access_rest_api_host, requests_mock):
     output = result.output
     assert "Proceeding to delete" in output
     assert "DIP could not be deleted" in output
+
+
+@pytest.mark.parametrize(
+    "params,expected_json,expected_filename,delete",
+    [
+        (
+            # Default creates DIP with entire AIP and in ZIP format
+            [],
+            {
+                "format": "zip",
+                "aips": [{"aip_id": "fake_aip_id"}]
+            },
+            None, False
+        ),
+        (
+            # Archive format derived from filename if provided...
+            ["--download-path", "test.tar"],
+            {
+                "format": "tar",
+                "aips": [{"aip_id": "fake_aip_id"}]
+            },
+            "test.tar", True
+        ),
+        (
+            # ...or from --archive-format, which takes precedence
+            # (despite being silly)...
+            ["--download-path", "test.tar", "--archive-format", "zip"],
+            {
+                "format": "zip",
+                "aips": [{"aip_id": "fake_aip_id"}]
+            },
+            "test.tar", True
+        ),
+        (
+            # ...or the attachment filename suggested by the server
+            # if --download-path is not provided.
+            ["--download"],
+            {
+                "format": "zip",
+                "aips": [{"aip_id": "fake_aip_id"}]
+            },
+            "fake_dip_id.zip", True
+        ),
+        (
+            # File IDs used
+            ["--file-id", "file-1", "--file-id", "file-2"],
+            {
+                "format": "zip",
+                "id_type": "file",
+                "aips": [
+                    {"aip_id": "fake_aip_id", "ids": ["file-1", "file-2"]}
+                ],
+            },
+            None, False
+        ),
+        (
+            # Disable deletion after download
+            ["--download", "--no-delete"],
+            {
+                "format": "zip",
+                "aips": [{"aip_id": "fake_aip_id"}]
+            },
+            "fake_dip_id.zip", False
+        )
+    ]
+)
+def test_request_dip(
+        cli_runner, monkeypatch, tmpdir,
+        access_rest_api_host, requests_mock, params, expected_json,
+        expected_filename, delete):
+    """
+    Test requesting a DIP and ensuring the DIP ID is returned
+    """
+    # Prevent downloaded DIPs from littering working directory
+    monkeypatch.chdir(tmpdir)
+
+    dip_post = requests_mock.post(
+        f"{access_rest_api_host}/api/3.0/urn:uuid:fake_contract_id/"
+        "preserved/disseminate",
+        json={
+            "status": "success",
+            "data": {
+                "disseminated": (
+                    f"{access_rest_api_host}/api/3.0/"
+                    "urn:uuid:fake_contract_id/disseminated/fake_dip_id"
+                )
+            },
+        }
+    )
+    requests_mock.get(
+        f"{access_rest_api_host}/api/3.0/urn:uuid:fake_contract_id/"
+        "disseminated/fake_dip_id",
+        json={
+            "status": "success",
+            "data": {
+                "dip_id": "fake_dip_id",
+                "complete": True,
+                "actions": {},
+                "dip": {"dip_name": "dippidy dip"},
+                "timestamp": "2026-09-01T12:00:00Z"
+            }
+        }
+    )
+    requests_mock.get(
+        f"{access_rest_api_host}/api/3.0/urn:uuid:fake_contract_id/"
+        "disseminated/fake_dip_id/download",
+        headers={
+            "Content-Disposition": "attachment; filename='fake_dip_id.zip'",
+            "Content-Length": "3"
+        },
+        content=b"DIP"
+    )
+    delete_mock = requests_mock.delete(
+        f"{access_rest_api_host}/api/3.0/urn:uuid:fake_contract_id/"
+        "disseminated/fake_dip_id",
+        status_code=204
+    )
+
+
+    result = cli_runner(
+        ["dissemination", "request-dip"] + params + ["fake_aip_id"]
+    )
+
+    assert dip_post.called_once
+    request = dip_post.request_history[-1]
+
+    assert request.json() == expected_json
+
+    assert "fake_dip_id" in result.output.strip()
+
+    if expected_filename:
+        archive_path = Path(tmpdir) / expected_filename
+        assert archive_path.read_bytes() == b"DIP"
+
+    assert delete_mock.called_once == delete
+
+    if delete:
+        assert "DIP deleted from the DPRES service" in result.output
 
 
 @pytest.mark.parametrize(
