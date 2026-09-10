@@ -713,37 +713,30 @@ def _poll_until_transfer_processed(client, transfer_id):
     poll_interval = -0.1
     poll_interval_iter = get_poll_interval_iter()
 
-    # See if the transfer has already been processed, in which case we don't
-    # need to poll it at all.
+    # Poll until the transfer has been processed
     try:
-        data = client.get_transfer(transfer_id=transfer_id)
-        current_status = data.status
+        while (current_status := client.get_transfer(transfer_id).status) \
+                not in processed_statuses:
+            while poll_interval > 0:
+                # Print a status message with a simple spinner animation so
+                # that the user doesn't get antsy
+                click.echo(
+                    f'The SIP has the status "{current_status}". '
+                    "Polling the DPS ingest for the SIP validation report... "
+                    f"{next(spinner_anim)}"
+                    # Carriage return so that the same line is overwritten
+                    f"\r",
+                    nl=False,
+                )
+                poll_interval -= 0.25
+                time.sleep(0.25)
+
+            poll_interval = next(poll_interval_iter)
     except HTTPError as exc:
         if exc.response.status_code == 404:
             click.echo("")
             raise ClickException(f"No transfer found for '{transfer_id}'")
         raise
-
-    while current_status not in processed_statuses:
-        # Print a status message with a simple spinner animation so that the
-        # user doesn't get antsy
-        click.echo(
-            f'The SIP has the status "{current_status}". '
-            "Polling the DPS ingest for the SIP validation report... "
-            f"{next(spinner_anim)}"
-            # Carriage return so that the same line is overwritten
-            f"\r",
-            nl=False,
-        )
-
-        if poll_interval < 0:
-            # Poll with start interval of 3s and max of 60s
-            data = client.get_transfer(transfer_id=transfer_id)
-            current_status = data["status"]
-            poll_interval = next(poll_interval_iter)
-
-        poll_interval -= 0.25
-        time.sleep(0.25)
 
     click.echo("")
     click.echo("Polling is done. Transfer has been processed.")

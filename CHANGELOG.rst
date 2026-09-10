@@ -24,6 +24,7 @@ Changed
 Fixed
 ~~~~~
 - ``dpres-client transfer get-report`` will no longer incorrectly report transfer as being missing regardless of the actual error
+- ``dpres-client transfer get-report`` will no longer crash during polling
 - ``RestClient.delete_transfer`` will now only return ``False`` for transfers that have already been deleted. Previously any unexpected error (eg. incorrect credentials) would return ``False`` and silently discard the error.
 
 `3.0.0`_ - 2026-08-28
