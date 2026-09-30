@@ -384,7 +384,7 @@ class RestClient(BaseClient):
     def create_uploader(
         self,
         file_path: str,
-        chunk_size: int | None = None,
+        chunk_size: int = 104857600,  # 100 MiB,
         store_url: bool = False,
         cache_file: str = "dpres_rest_api_client_tus_storage",
     ) -> Uploader:
@@ -393,7 +393,7 @@ class RestClient(BaseClient):
 
         :param file_path: String path to the file that will be uploaded.
         :param chunk_size: Integer value on how big of a bytes each chunk
-            should be when uploading. None for no limit.
+            should be when uploading. Defaults to 100 MB.
         :param store_url: Boolean whether to cache the URLs for given file
             to later try and resume. Defaulted to False.
         :param cache_file: Which file to use to cache TUS storage for
@@ -406,8 +406,7 @@ class RestClient(BaseClient):
                 "filename": os.path.basename(file_path),
             }
         }
-        if chunk_size:
-            kwargs["chunk_size"] = chunk_size
+        kwargs["chunk_size"] = chunk_size
         if self.session.verify is False:
             kwargs["verify_tls_cert"] = False
 
