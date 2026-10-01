@@ -9,6 +9,9 @@ and this project adheres to `Semantic Versioning <https://semver.org/spec/v2.0.0
 `Unreleased`_
 -------------
 
+`3.1.1`_ - 2026-10-01
+---------------------
+
 Fixed
 ~~~~~
 - Uploads no longer fail with 413 Content Too Large error if Python API is used without manually specifying chunk size
@@ -199,4 +202,5 @@ Added
 .. _0.4: https://github.com/Digital-Preservation-Finland/dpres-rest-api-client/compare/v0.3...v0.4
 .. _0.3: https://github.com/Digital-Preservation-Finland/dpres-rest-api-client/compare/v0.2...v0.3
 .. _0.2: https://github.com/Digital-Preservation-Finland/dpres-rest-api-client/compare/v0.1...v0.2
-.. _Unreleased: https://github.com/Digital-Preservation-Finland/dpres-rest-api-client/compare/v3.1.0...HEAD
+.. _Unreleased: https://github.com/Digital-Preservation-Finland/dpres-rest-api-client/compare/v3.1.1...HEAD
+.. _3.1.1: https://github.com/Digital-Preservation-Finland/dpres-rest-api-client/compare/v3.1.0...v3.1.1
